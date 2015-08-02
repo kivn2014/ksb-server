@@ -1,0 +1,42 @@
+2015.06.27 at 12:54:46 CST TRACE com.ksb.openapi.mobile.service.impl.EretailerServiceImpl 333 currentDayWayBillStatistic - entry params(608224890197114880)
+2015.06.27 at 12:55:06 CST DEBUG com.ksb.openapi.mobile.service.impl.EretailerServiceImpl 340 currentDayWayBillStatistic - 是否启用redis: false
+2015.06.27 at 12:55:16 CST TRACE com.ksb.openapi.mobile.service.impl.EretailerServiceImpl 353 currentDayWayBillStatistic - entry params(waybillDao.currentDayWaybillStatByCourier, 608224890197114880, 1435334400000, 1435420799000, 1)
+2015.06.27 at 12:59:23 CST TRACE com.ksb.openapi.mobile.service.impl.EretailerServiceImpl 333 currentDayWayBillStatistic - entry params(608224890197114880)
+2015.06.27 at 12:59:30 CST DEBUG com.ksb.openapi.mobile.service.impl.EretailerServiceImpl 340 currentDayWayBillStatistic - 是否启用redis: false
+2015.06.27 at 12:59:33 CST TRACE com.ksb.openapi.mobile.service.impl.EretailerServiceImpl 353 currentDayWayBillStatistic - entry params(waybillDao.currentDayWaybillStatByCourier, 608224890197114880, 1435334400000, 1435420799000, 1)
+2015.06.27 at 13:03:33 CST TRACE com.ksb.openapi.mobile.service.impl.EretailerServiceImpl 333 currentDayWayBillStatistic - entry params(608224890197114880)
+2015.06.27 at 13:03:40 CST DEBUG com.ksb.openapi.mobile.service.impl.EretailerServiceImpl 340 currentDayWayBillStatistic - 是否启用redis: false
+2015.06.27 at 13:03:43 CST TRACE com.ksb.openapi.mobile.service.impl.EretailerServiceImpl 353 currentDayWayBillStatistic - entry params(waybillDao.currentDayWaybillStatByCourier, 608224890197114880, 1435334400000, 1435420799000, 1)
+2015.06.27 at 13:06:34 CST TRACE com.ksb.openapi.mobile.service.impl.O2oWaybillServiceImpl 105 currentDayWayBillStatistic - entry params(608224890197114880)
+2015.06.27 at 13:06:34 CST DEBUG com.ksb.openapi.mobile.service.impl.O2oWaybillServiceImpl 112 currentDayWayBillStatistic - 是否启用redis: false
+2015.06.27 at 13:06:34 CST TRACE com.ksb.openapi.mobile.service.impl.O2oWaybillServiceImpl 128 currentDayWayBillStatistic - entry params(waybillDao.currentDayWaybillStatByCourier, 608224890197114880, 1435334400000, 1435420799000, 2)
+2015.06.27 at 13:06:34 CST TRACE com.ksb.openapi.mobile.service.impl.O2oWaybillServiceImpl 136 currentDayWayBillStatistic - exit with([{num=1, status=-1}, {num=11, status=5}])
+2015.06.27 at 13:08:02 CST TRACE com.ksb.openapi.mobile.service.impl.O2oWaybillServiceImpl 105 currentDayWayBillStatistic - entry params(608224890197114880)
+2015.06.27 at 13:08:11 CST DEBUG com.ksb.openapi.mobile.service.impl.O2oWaybillServiceImpl 112 currentDayWayBillStatistic - 是否启用redis: false
+2015.06.27 at 13:08:16 CST TRACE com.ksb.openapi.mobile.service.impl.O2oWaybillServiceImpl 128 currentDayWayBillStatistic - entry params(waybillDao.currentDayWaybillStatByCourier, 608224890197114880, 1435334400000, 1435420799000, 2)
+2015.06.27 at 13:10:06 CST TRACE com.ksb.openapi.mobile.service.impl.O2oWaybillServiceImpl 105 currentDayWayBillStatistic - entry params(608224890197114880)
+2015.06.27 at 13:10:13 CST DEBUG com.ksb.openapi.mobile.service.impl.O2oWaybillServiceImpl 112 currentDayWayBillStatistic - 是否启用redis: false
+2015.06.27 at 13:10:17 CST TRACE com.ksb.openapi.mobile.service.impl.O2oWaybillServiceImpl 128 currentDayWayBillStatistic - entry params(waybillDao.currentDayWaybillStatByCourier, 608224890197114880, 1435334400000, 1435420799000, 2)
+2015.06.27 at 13:13:47 CST TRACE com.ksb.openapi.mobile.service.impl.O2oWaybillServiceImpl 105 currentDayWayBillStatistic - entry params(608224890197114880)
+2015.06.27 at 13:13:50 CST DEBUG com.ksb.openapi.mobile.service.impl.O2oWaybillServiceImpl 112 currentDayWayBillStatistic - 是否启用redis: false
+2015.06.27 at 13:13:53 CST TRACE com.ksb.openapi.mobile.service.impl.O2oWaybillServiceImpl 128 currentDayWayBillStatistic - entry params(waybillDao.currentDayWaybillStatByCourier, 608224890197114880, 1435334400000, 1435420799000, 2)
+2015.06.27 at 13:15:46 CST TRACE com.ksb.openapi.mobile.service.impl.O2oWaybillServiceImpl 105 currentDayWayBillStatistic - entry params(608224890197114880)
+2015.06.27 at 13:15:58 CST DEBUG com.ksb.openapi.mobile.service.impl.O2oWaybillServiceImpl 112 currentDayWayBillStatistic - 是否启用redis: false
+2015.06.27 at 13:16:01 CST TRACE com.ksb.openapi.mobile.service.impl.O2oWaybillServiceImpl 128 currentDayWayBillStatistic - entry params(waybillDao.currentDayWaybillStatByCourier, 608224890197114880, 1435334400000, 1435420799000, 2)
+2015.06.27 at 13:16:35 CST TRACE com.ksb.openapi.mobile.service.impl.O2oWaybillServiceImpl 136 currentDayWayBillStatistic - exit with([{num=0, status=3}, {num=0, status=2}, {num=0, status=1}, {num=0, status=0}, {num=1, status=-1}, {num=11, status=5}, {num=0, status=4}])
+2015.07.08 at 16:17:01 CST TRACE com.ksb.openapi.mobile.service.impl.CourierServiceImpl 257 recordCourierGps - entry params(redis is work: false)
+2015.07.08 at 16:20:10 CST TRACE com.ksb.openapi.mobile.service.impl.CourierServiceImpl 257 recordCourierGps - entry params(redis is work: true)
+2015.07.08 at 16:25:33 CST TRACE com.ksb.openapi.mobile.service.impl.CourierServiceImpl 257 recordCourierGps - entry params(redis is work: true)
+2015.07.08 at 16:28:57 CST TRACE com.ksb.openapi.mobile.service.impl.CourierServiceImpl 257 recordCourierGps - entry params(redis is work: true)
+2015.07.08 at 16:32:24 CST TRACE com.ksb.openapi.mobile.service.impl.CourierServiceImpl 257 recordCourierGps - entry params(redis is work: true)
+2015.07.08 at 16:35:54 CST TRACE com.ksb.openapi.mobile.service.impl.CourierServiceImpl 257 recordCourierGps - entry params(redis is work: true)
+2015.07.08 at 16:40:16 CST TRACE com.ksb.openapi.mobile.service.impl.ShipperServiceImpl 432 createWaybill - entry params({city_name=北京市, sp_id=100, y=39.990903, x=116.311664})
+2015.07.08 at 16:42:22 CST TRACE com.ksb.openapi.mobile.service.impl.ShipperServiceImpl 432 createWaybill - entry params({city_name=北京市, sp_id=100, y=39.990903, x=116.311664})
+2015.07.08 at 16:43:49 CST TRACE com.ksb.openapi.mobile.service.impl.ShipperServiceImpl 432 createWaybill - entry params({city_name=北京市, sp_id=100, y=39.990903, x=116.311664})
+2015.07.08 at 16:45:17 CST TRACE com.ksb.openapi.mobile.service.impl.ShipperServiceImpl 432 createWaybill - entry params({city_name=北京市, sp_id=100, y=39.990903, x=116.311664})
+2015.07.08 at 16:46:37 CST TRACE com.ksb.openapi.mobile.service.impl.CourierServiceImpl 301 queryNearCourier - entry params(redis中查到配送公司[100];半径[3]公里内的配送员 , [608224890197114880^0.00^])
+2015.07.08 at 16:47:14 CST TRACE com.ksb.openapi.mobile.service.impl.CourierServiceImpl 335 queryNearCourier - entry params(选中的配送员, 608224890197114880)
+2015.07.08 at 23:51:29 CST TRACE com.ksb.openapi.mobile.service.impl.ShipperServiceImpl 566 querySpUser - entry params(500, , 0, 10)
+2015.07.08 at 23:51:36 CST TRACE com.ksb.openapi.mobile.service.impl.ShipperServiceImpl 575 querySpUser - entry params(请求userDao.querySpUser: 参数：, 500, , 0, 10)
+2015.07.08 at 23:53:32 CST TRACE com.ksb.openapi.mobile.service.impl.ShipperServiceImpl 566 querySpUser - entry params(500, , 0, 10)
+2015.07.08 at 23:53:35 CST TRACE com.ksb.openapi.mobile.service.impl.ShipperServiceImpl 575 querySpUser - entry params(请求userDao.querySpUser: 参数：, 500, , 0, 10)

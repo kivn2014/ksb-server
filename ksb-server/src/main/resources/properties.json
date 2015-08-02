@@ -1,0 +1,82 @@
+{
+    "redis.host":{
+        "value":"db.3gongli.com",
+        "comments":""
+    }, 
+    "redis.port":{
+        "value":"6379",
+        "comments":""
+    },
+    "redis.password":{
+        "value":"KKKSb0506",
+        "comments":""
+    },    
+    "redis.maxIdle":{
+        "value":"200",
+        "comments":""
+    }, 
+    "redis.maxActive":{
+        "value":"1024",
+        "comments":""
+    }, 
+     "redis.maxWait":{
+        "value":"1000",
+        "comments":""
+    },  
+     "redis.testOnBorrow":{
+        "value":"true",
+        "comments":""
+    },
+     "redis.enable":{
+        "value":"false",
+        "comments":"是否启用redis"
+    },    
+     "ksb.waybill.group.distance":{
+        "value":"5",
+        "comments":"一组订单中相互间距最大距离"
+    },     
+      "ksb.waybill.one2more.geo.key":{
+        "value":"one2more_geo_key",
+        "comments":"一个商家多个配送地址在redis中存储的key前缀"
+    },  
+      "ksb.waybill.group.maxnum":{
+        "value":"3",
+        "comments":"一个优化分组单元，每个分组中最多元素个数"
+    },  
+      "ksb.waybill.search.base.radius":{
+        "value":"3",
+        "comments":"运单合并，中心点搜索半径"
+    },     
+      "shansong.host":{
+        "value":"http://www.bingex.com/",
+        "comments":"闪送host地址"
+    },      
+      "dada.restapi.host":{
+        "value":"http://public.ga.dev.imdada.cn/",
+        "comments":"达达host地址"
+    } ,      
+      "dada.restapi.callback.url":{
+        "value":"http://public.ga.dev.imdada.cn/",
+        "comments":"达达订单提交接口callbackurl(快送宝的地址)"
+    } ,    
+       "near.courier.radius":{
+        "value":"3",
+        "comments":"订单分配 默认查询3公里范围内的配送员"
+    } ,    
+       "redis.workstatus.prefix":{
+        "value":"redis_workstatus_",
+        "comments":"记录配送员开工收工状态"
+    }  ,    
+       "redis.ps.status.prefix":{
+        "value":"redis_ps_status_",
+        "comments":"记录配送员配送状态"
+    }  ,    
+       "redis.courier.geo.prefix":{
+        "value":"COURIER_GPS_",
+        "comments":"存储配送员最近上报的位置"
+    }  ,    
+       "redis.unallocate.prefix":{
+        "value":"redis_unallocate_",
+        "comments":"存储配送员最近上报的位置"
+    }                
+}

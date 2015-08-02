@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:props="http://www.autonavi.com/schema/configCenter"
+	xmlns:shard-cc="http://www.autonavi.com/schema/shardConfigCenter"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context  
+    http://www.springframework.org/schema/context/spring-context.xsd 
+    http://www.autonavi.com/schema/configCenter
+    http://www.autonavi.com/schema/configCenter/props-cc.xsd
+    http://www.autonavi.com/schema/shardConfigCenter
+    http://www.autonavi.com/schema/shardConfigCenter/shard-cc.xsd
+    http://www.springframework.org/schema/task
+    http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+
+
+   <import resource="applicationContext-tx.xml"/>
+   <import resource="provider.xml"/>
+
+	<shard-cc:config>
+		<shard-cc:info configJson="/aof-shard.json"></shard-cc:info>
+	</shard-cc:config>
+	<props:config>
+		<props:info configJson="/properties.json"></props:info>
+	</props:config>
+
+    <context:annotation-config />
+	<!-- 使用spring管理DAO -->
+	<context:component-scan base-package="com.ksb"></context:component-scan>
+
+    <!-- 定时器扫描 -->
+    <task:annotation-driven/>
+    <context:component-scan base-package="com.ksb.job"></context:component-scan>
+
+
+    <!-- redis配置 -->
+	<bean id="poolConfig" class="redis.clients.jedis.JedisPoolConfig">
+		<property name="maxIdle" value="${redis.maxIdle}" />
+		<property name="testOnBorrow" value="${redis.testOnBorrow}" />
+	</bean>
+
+
+	<bean id="jedisPool" class="redis.clients.jedis.JedisPool">
+			<constructor-arg ref="poolConfig" />
+		<constructor-arg value="${redis.host}" />
+		<constructor-arg type="int" value="${redis.port}" />
+		<constructor-arg type="int" value="5000" />
+		<constructor-arg value="KKKSb0506" />
+	</bean>
+</beans>

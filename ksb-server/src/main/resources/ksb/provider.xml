@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xmlns:props="http://www.autonavi.com/schema/configCenter"
+	xmlns:shard-cc="http://www.autonavi.com/schema/shardConfigCenter"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://code.alibabatech.com/schema/dubbo
+	http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+	<!-- 提供方应用信息，用于计算依赖关系 -->
+	<dubbo:application name="test_service" />
+
+	<!-- 使用multicast广播注册中心暴露服务地址 -->
+	<!-- <dubbo:registry address="multicast://224.4.5.6:1234" /> -->
+	
+	<!-- 基于zk -->
+	<!-- <dubbo:registry address="zookeeper://123.57.217.101:2181?backup=123.57.217.101:2182,123.57.217.101:2183" />
+	     <dubbo:registry address="zookeeper://101.200.228.188:2181?backup=101.200.228.188:2182" />-->
+
+    <dubbo:consumer timeout="60000"/>
+	<!-- 用dubbo协议在20880端口暴露服务 -->
+	<dubbo:protocol name="dubbo" port="20880" />
+
+	<!-- 声明需要暴露的服务接口 -->
+	
+	<!-- AgentInfoService -->
+	
+	<!-- 在此写需要对外发布的dubbo接口 -->
+	<dubbo:service interface="com.ksb.openapi.service.WaybillService" ref="waybillServiceImpl" />
+	<dubbo:service interface="com.ksb.openapi.mobile.service.MobileWaybillService" ref="mobileWaybillServiceImpl" />
+	<dubbo:service interface="com.ksb.openapi.mobile.service.CourierService" ref="courierServiceImpl" />
+	<dubbo:service interface="com.ksb.openapi.mobile.service.RedisService" ref="redisServiceImpl" />
+	
+	<!-- app产品版本管理 -->
+	<dubbo:service interface="com.ksb.openapi.service.ProductVersionService" ref="productVersionServiceImpl" />
+	
+	<!-- 订单统计 -->
+	<dubbo:service interface="com.ksb.openapi.service.StatisticsService" ref="statisticsServiceImpl" />
+
+	<dubbo:service interface="com.ksb.openapi.mobile.service.EretailerService" ref="eretailerServiceImpl" />
+	<dubbo:service interface="com.ksb.openapi.mobile.service.ShipperService" ref="shipperServiceImpl" />
+	<dubbo:service interface="com.ksb.openapi.mobile.service.O2oWaybillService" ref="o2oWaybillServiceImpl" />
+	
+	<!-- 运单分配系统 -->
+	<dubbo:service interface="com.ksb.web.service.WebWaybillService" ref="webWaybillServiceImpl" />
+	
+</beans>
