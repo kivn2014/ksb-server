@@ -41,7 +41,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 		
 		List<Map<String, String>> rsList = null;
 		List<Map<String, String>> countList = null;
-		long countNum = 0;
+		//long countNum = 0;
 		try{
 			
 			/*查询时间段内的总量*/
@@ -51,9 +51,8 @@ public class StatisticsServiceImpl implements StatisticsService {
 			/*时间段内分页查询数据*/
 			rsList = (List<Map<String, String>>)statisticsDao.groupQueryDateStatus(enterpriseId, startTime, endTime,skip,size);
 			log.entry("statisticsDao.groupQueryDateStatus_return",rsList);
-			countNum = DaoHelper.getCount();
-			log.entry("statisticsDao.groupQueryDateStatus_return_count",countNum);
-			
+			//countNum = DaoHelper.getCount();
+			//log.entry("statisticsDao.groupQueryDateStatus_return_count",countNum);
 			
 		}catch(Exception e){
 			throw new BaseSupportException(e);
@@ -68,7 +67,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 		handleCountData(countList, tmCountMap);
 		
 		rsMap.put("1", tmMap);
-		rsMap.put("2", countNum);
+		//rsMap.put("2", countNum);
 		rsMap.put("3", tmCountMap);
 		
 		return rsMap;
@@ -147,10 +146,10 @@ public class StatisticsServiceImpl implements StatisticsService {
 		
 		
 		List<Map<String, String>> rsList = null;
-		long countNum = 0;
+		//long countNum = 0;
 		try{
 			rsList = (List<Map<String, String>>)statisticsDao.queryCourierStatusByDate(enterpriseId, courierRealName, dayStr,skip,size);
-			countNum = DaoHelper.getCount();
+			//countNum = DaoHelper.getCount();
 			
 		}catch(Exception e){
 			throw new BaseSupportException(e);
@@ -162,7 +161,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 		
 		handleCourierStatusList(rsList, tmMap);
 		rsMap.put("1", tmMap);
-		rsMap.put("2", countNum);
+		//rsMap.put("2", countNum);
 		
 		return rsMap;
 	}

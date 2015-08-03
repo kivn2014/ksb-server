@@ -60,6 +60,7 @@ public class WebWaybillServiceImpl implements WebWaybillService {
 		
 		try{
 			waybillDao.batchAllocateWaybill2Courier(cid, "0", waybillList);
+			userDao.updateCourierPsStatus(cid, "1");
 		}catch(Exception e){
 			throw new BaseSupportException(e);
 		}

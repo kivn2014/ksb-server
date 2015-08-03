@@ -24,6 +24,7 @@ import com.ksb.openapi.dao.EnterpriseDao;
 import com.ksb.openapi.dao.UserDao;
 import com.ksb.openapi.dao.WaybillDao;
 import com.ksb.openapi.entity.BuyerEntity;
+import com.ksb.openapi.entity.EnterpriseCityEntity;
 import com.ksb.openapi.entity.ResultEntity;
 import com.ksb.openapi.entity.ShipperEntity;
 import com.ksb.openapi.entity.WayBillEntity;
@@ -545,9 +546,15 @@ public class WaybillServiceImpl implements WaybillService{
 		waybillEntity.setFetch_buyer_fee(fetchBuyerFee);
 		/*运单提交时间*/
 		waybillEntity.setCreate_time(new Date().getTime());
-		waybillEntity.setWaybill_status("0");
+		waybillEntity.setWaybill_status("2");
 		waybillEntity.setPayment_status("0");
 		waybillEntity.setWaybill_type("2");
+		
+		/*根据城市名，获取负责该城市的配送企业列表*/
+		List<EnterpriseCityEntity> entList = (List<EnterpriseCityEntity>)enterpriseDao.queryEnterpriseByCityInfo(cityName, null, null, null);
+		if(entList==null || entList.size()==0){
+		   throw new BaseSupportException("该城市无配送团队");	
+		}
 		
 		try {
 			waybillDao.batchCreateKSBWayBillByBuyerAddress(waybillEntity, buyersList);
@@ -556,7 +563,7 @@ public class WaybillServiceImpl implements WaybillService{
 		}
 		
 		/*异步把运单 数据放入到redis，自动优化分单*/
-		WaybillAllocationStrategy thread2Redis = new WaybillAllocationStrategy(shipperEntity,waybillEntity, buyersList);
+		WaybillAllocationStrategy thread2Redis = new WaybillAllocationStrategy(shipperEntity,waybillEntity, buyersList,entList);
 		thread2Redis.run();
 		
 		return true;
@@ -572,10 +579,12 @@ public class WaybillServiceImpl implements WaybillService{
 		WayBillEntity waybillEntity = null;
 		List<BuyerEntity> buyerList = null;
 		ShipperEntity shipperEntity = null;
-		public WaybillAllocationStrategy(ShipperEntity shipperEntity,WayBillEntity waybillEntity,List<BuyerEntity> buyerList){
+		List<EnterpriseCityEntity> entList=null;
+		public WaybillAllocationStrategy(ShipperEntity shipperEntity,WayBillEntity waybillEntity,List<BuyerEntity> buyerList,List<EnterpriseCityEntity> entList){
 			this.waybillEntity = waybillEntity;
 			this.buyerList = buyerList;
 			this.shipperEntity = shipperEntity;
+			this.entList = entList;
 		}
 		
 		public void run(){
@@ -584,11 +593,9 @@ public class WaybillServiceImpl implements WaybillService{
 			int psPlatform = Integer.parseInt(waybillEntity.getThird_platform_id());
 			switch (psPlatform) {
 			case 0:
-				/*快送宝配送*/
-				//log.warn("暂不支持");
-				/*根据地理信息，把运单分配给相关的报社*/
-				/*暂时写死，所有的运单都分配给广州日报(id暂时固定 500)*/
-				ksbStrategy(buyerList, "500");
+				/*系统自动分配配送公司(通过webapi提交的订单，订单默认分配。之后分配策略需要修改)*/
+				String eid = entList.get(0).getEnterprise_id();
+				ksbStrategy(buyerList, eid);
 				break;
 			case 1:	
                 /*达达配送*/
