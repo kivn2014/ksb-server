@@ -13,6 +13,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.ksb.openapi.dao.ScheduledJobDao;
+import com.ksb.openapi.dao.UserDao;
 import com.ksb.openapi.dao.WaybillDao;
 import com.ksb.openapi.mobile.service.CourierService;
 import com.ksb.openapi.util.DateUtil;
@@ -30,6 +31,9 @@ public class WaybillJobService {
 	
 	@Autowired
 	WaybillDao waybillDao;
+	
+	@Autowired
+	UserDao userDao;
 	
 	/**
 	 * 每10分钟扫描一次是否有空闲的配送员
@@ -116,6 +120,10 @@ public class WaybillJobService {
 			try{
 				log.debug("订单["+waybillId+"],分配给["+courierId+"]");
 				waybillDao.allocationWayBill2Courier4KSB(waybillId, courierId);
+				
+				/*配送员状态调整为配送中*/
+				userDao.updateCourierDeliveryStatus(courierId, "1");
+				
 			}catch(Exception e){
 				log.error("把订单["+waybillId+"] 分配给["+courierId+"]时出现异常",e);
 			}

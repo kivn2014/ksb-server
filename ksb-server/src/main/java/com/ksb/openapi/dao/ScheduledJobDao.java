@@ -40,7 +40,7 @@ public class ScheduledJobDao {
 	@Update	
 	public Object resetUnCompleteWaybill(@SqlParameter("st")long startTime,@SqlParameter("et")long endTime){
 		StringBuilder sb = new StringBuilder("update waybill set waybill_status=-3,sys_remarks='定时器自动把配送员未完成的订单调整为取消',HANDLE_FLAG=1 ");
-		sb.append(" where (waybill_status>0 and waybill_status!=5) and create_time>=#{st} and create_time<=#{et} and HANDLE_FLAG=0 ");
+		sb.append(" where (waybill_status>=0 and waybill_status!=5) and create_time>=#{st} and create_time<=#{et} and HANDLE_FLAG=0 ");
 		
 		return sb.toString();
 	}
@@ -103,7 +103,6 @@ public class ScheduledJobDao {
 		
 		return sb.toString();
 	}
-	
 	
 	
 }

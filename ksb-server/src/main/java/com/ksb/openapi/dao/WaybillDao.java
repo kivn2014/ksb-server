@@ -7,6 +7,7 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Repository;
 
+import com.esotericsoftware.minlog.Log;
 import com.ksb.openapi.entity.BuyerEntity;
 import com.ksb.openapi.entity.WayBillEntity;
 import com.ksb.openapi.util.DateUtil;
@@ -580,7 +581,7 @@ public class WaybillDao {
 		 }
 		 if(StringUtils.isNotBlank(courierRealName)){
 			 pm.put("c_realname", "%"+pm.get("c_realname")+"%");
-			 cnameSql = " and c.real_name=#{m.c_realname} ";
+			 cnameSql = " and c.real_name like #{m.c_realname} ";
 			 ismatchCourier = true;
 		 }
 		 if(StringUtils.isNotBlank(courierPhone)){
@@ -596,14 +597,14 @@ public class WaybillDao {
 		 sb.append(" u.name buyer_name,u.address buyer_address,u.address_x buyer_x,u.address_y buyer_y,u.phone buyer_phone,wb.payment_status payment_status,wb.pay_type pay_type, ");
 		 sb.append(" wb.IS_PREPAY is_prepay,FROM_UNIXTIME((wb.create_time/1000),'%Y-%m-%d %T') create_time,wb.finish_time finish_time,wb.EXPECTED_FETCH_TIME fetch_time,wb.EXPECTED_ARRIVAL_TIME arrival_time");
 		
-		 if(ismatchCourier){
-			 sb.append(" ,c.name courier_naem,c,real_name courier_realname,c.phone courier_phone ");
-		 }
+		 //if(ismatchCourier){
+			 sb.append(" ,c.name courier_name,c.real_name courier_realname,c.phone courier_phone ");
+		// }
 		 sb.append(" from waybill wb join shippers sp on sp.id=wb.shippers_ID left join user u on u.id = wb.buyer_id  ");
 		 
-		 if(ismatchCourier){
+		 //if(ismatchCourier){
 			 sb.append(" left join courier c on wb.courier_id = c.id ");
-		 }
+		 //}
 		 sb.append(" where 1=1 ");
 		 
 		 String thirdPlatFormId = pm.get("third_platform_id");
@@ -618,7 +619,7 @@ public class WaybillDao {
 		 
 		 String waybillId = pm.get("id");
 		 if(StringUtils.isNotBlank(waybillId)){
-			 sb.append(" and wb.id=#{id} ");
+			 sb.append(" and wb.id=#{m.id} ");
 		 }
 		 
 

@@ -275,9 +275,9 @@ public class WaybillServiceImpl implements WaybillService{
 //			throw new BaseSupportException("参数province_name 运单所在的省信息为空");
 //		}
 		/*运单所在的市*/
-		String cityName = map.get("city_name");
-		if(StringUtils.isBlank(cityName)){
-			throw new BaseSupportException("参数city_name 运单所在的市信息为空");
+		String cityCode = map.get("city_code");
+		if(StringUtils.isBlank(cityCode)){
+			throw new BaseSupportException("参数city_code 运单所在的市信息为空");
 		}
 		
 		/*-------------------支付信息判断-------------------------------*/
@@ -505,7 +505,8 @@ public class WaybillServiceImpl implements WaybillService{
 		
 		/*运单所在的省市信息*/
 		waybillEntity.setProvince_name(provinceName);
-		waybillEntity.setCity_name(cityName);
+//		waybillEntity.setCity_name(cityName);
+		waybillEntity.setCity_code(cityCode);
 		/*商家ID*/
 		waybillEntity.setShippers_id(String.valueOf(shipperId));
 		/*支付类型*/
@@ -551,7 +552,7 @@ public class WaybillServiceImpl implements WaybillService{
 		waybillEntity.setWaybill_type("2");
 		
 		/*根据城市名，获取负责该城市的配送企业列表*/
-		List<EnterpriseCityEntity> entList = (List<EnterpriseCityEntity>)enterpriseDao.queryEnterpriseByCityInfo(cityName, null, null, null);
+		List<EnterpriseCityEntity> entList = (List<EnterpriseCityEntity>)enterpriseDao.queryEnterpriseByCityInfo(null, null, cityCode, null);
 		if(entList==null || entList.size()==0){
 		   throw new BaseSupportException("该城市无配送团队");	
 		}
@@ -595,7 +596,7 @@ public class WaybillServiceImpl implements WaybillService{
 			case 0:
 				/*系统自动分配配送公司(通过webapi提交的订单，订单默认分配。之后分配策略需要修改)*/
 				String eid = entList.get(0).getEnterprise_id();
-				ksbStrategy(buyerList, eid);
+				ksbStrategy(waybillEntity.getCity_code(),shipperEntity.getAddress_x(),shipperEntity.getAddress_y(),buyerList, eid);
 				break;
 			case 1:	
                 /*达达配送*/
@@ -618,14 +619,16 @@ public class WaybillServiceImpl implements WaybillService{
 		}
 	}
 	
-	
-	private void ksbStrategy(List<BuyerEntity> buyerList,String eid){
+	private void ksbStrategy(String cityCode,String sp_x,String sp_y,List<BuyerEntity> buyerList,String eid){
 		
 		/*批量把快送宝运单提交到 达达平台*/
 		
 		for(BuyerEntity be : buyerList){
 			String ksbId = be.getWbid();
 			waybillDao.allocationWayBill2ThirdParty(ksbId, eid, "0");
+			
+			/*同时把订单放入到 待分配表中*/
+			waybillDao.saveUnallocateWaybill(ksbId, cityCode, sp_x, sp_y, eid);
 		}
 	}
 	

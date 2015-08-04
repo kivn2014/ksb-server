@@ -60,8 +60,8 @@ public class ServiceTest {
 	@Autowired
 	UserDao userDao;
 	
-	@Autowired
-	CourierService courierService;
+	//@Autowired
+	//CourierService courierService;
 
 	@Autowired
 	EretailerService eretailerService;
@@ -155,7 +155,13 @@ public class ServiceTest {
 		//statDateStatusCourier();
 		
 		//shipperCancelWaybill();
-		saveUnallocate();
+		//saveUnallocate();
+		searchWaybillTemp();
+	}
+	
+	
+	public void searchWaybillTemp(){
+		waybillDao.searchWaybillInfo(new HashMap<String, String>(), 0, 10);
 	}
 	
 	public void saveUnallocate(){
@@ -310,7 +316,7 @@ public class ServiceTest {
 	
 	public void updateWorkStatus(){
 		
-		courierService.updateCourierWorkStatus("608224890197114880", "100", "1", "116.311664", "39.990903");
+		//courierService.updateCourierWorkStatus("608224890197114880", "100", "1", "116.311664", "39.990903");
 		
 		
 	}
