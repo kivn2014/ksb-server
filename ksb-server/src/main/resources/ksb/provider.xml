@@ -15,8 +15,8 @@
 	<!-- <dubbo:registry address="multicast://224.4.5.6:1234" /> -->
 	
 	<!-- 基于zk -->
-	<!-- <dubbo:registry address="zookeeper://123.57.217.101:2181?backup=123.57.217.101:2182,123.57.217.101:2183" />-->
-	     <dubbo:registry address="zookeeper://101.200.228.188:2181?backup=101.200.228.188:2182" />
+	<!-- <dubbo:registry address="zookeeper://zk.3gongli.com:2181?backup=zk.3gongli.com:2182,zk.3gongli.com:2183" />
+	-->
 
     <dubbo:consumer timeout="60000"/>
 	<!-- 用dubbo协议在20880端口暴露服务 -->
