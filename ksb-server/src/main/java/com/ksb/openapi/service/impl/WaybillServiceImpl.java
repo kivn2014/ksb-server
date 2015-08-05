@@ -174,6 +174,7 @@ public class WaybillServiceImpl implements WaybillService{
 			throw new BaseSupportException("参数:发货人电话为空");
 		}
 		
+		
 		/*买家地址验证*/
 		String shipperAddress = map.get("shipper_address");
 		if(StringUtils.isBlank(shipperAddress)){
@@ -330,14 +331,19 @@ public class WaybillServiceImpl implements WaybillService{
 //			throw new BaseSupportException("参数:cartgo_num货物数量为空");
 //		}
 		
-		/*------配送平台(以后默认走快送宝配送平台，除非硬性指定配送平台(前期仅支持达达和闪送))--------*/
-		
+		/*------商家提交订单，可以指定配送公司(如果该值不为空，则不自动分单)--------*/
 		String thirdPlatformId = map.get("third_platform_id");
-		if(StringUtils.isBlank(thirdPlatformId)){
+		//if(StringUtils.isBlank(thirdPlatformId)){
 			//throw new BaseSupportException("参数:thirdPlatformId 未指定配送平台");
 			/*默认走快送宝配送平台*/
-			thirdPlatformId = "0";
+			//thirdPlatformId = "0";
+		//}
+			
+		String psId = map.get("ps_id");
+		if(StringUtils.isBlank(psId)){
+			psId = "0";
 		}
+			
 		
 		/*-------------------买家参数验证------------------------------*/
 		
@@ -417,92 +423,113 @@ public class WaybillServiceImpl implements WaybillService{
 		}
 		
 		/*------------------判断商家信息----------------------*/
+		/*商家自己的订单id*/
+		String originId = map.get("origin_id");
 		
-		/*发货人验证*/
-		String shipperName = map.get("shipper_name");
-		if(StringUtils.isBlank(shipperName)){
-			throw new BaseSupportException("参数:发货人姓名为空");
-		}
+		String shipperId = map.get("shipper_id");
 		
-		/*发货人电话验证(后期考虑使用正则判断电话号码是否符合规则)*/
-		String shipperPhone = map.get("shipper_phone");
-		if(StringUtils.isBlank(shipperPhone)){
-			throw new BaseSupportException("参数:发货人电话为空");
-		}
-		
-		/*发货人地址验证*/
-		String shipperAddress = map.get("shipper_address");
-		if(StringUtils.isBlank(shipperAddress)){
-			throw new BaseSupportException("参数:发货人地址为空");
-		}
-		
-		/*用百度地图验证卖家地址是否存在(需要优化，以后需要调整为：如果商家已经存在，判断库中得地址和当前传入的地址是否一样 这样可以解决商家搬家的问题)*/
-		ResultEntity rsEntity = new ResultEntity();
-		
-		/*判断前段是否已经获取了经纬度*/
-		String shipperAddressX = map.get("shipper_address_x");
-		String shipperAddressY = map.get("shipper_address_y");
-		if(StringUtils.isNotBlank(shipperAddressX)&&StringUtils.isNotBlank(shipperAddressY)){
-			rsEntity.setSuccess(true);
-			rsEntity.setObj(shipperAddressX+";"+shipperAddressY);
-		}else{
-			try{
-				rsEntity = AddressUtils.validateAddressByBDMap(shipperAddress,null);
-			}catch(BaseSupportException e){
-				throw e;
-			}
-		}
-
-		if(!rsEntity.isSuccess()){
-			throw new BaseSupportException("参数:发货人地址不正确");
-		}
-		
-		/*判断买家是否存在(如果存在返回用户ID；如果不存在先创建一个用户，然后返回该用户ID)*/
-		Long shipperId = null;
-		
-		/*两个冗余字段，在运单提交 自动分单的时候，需要使用商家位置为中心点做配送优化*/
 		ShipperEntity shipperEntity = new ShipperEntity();
-		try {
-			
-			/*后期queryShipperByNamePhone方法改为返回值为 shipperEntity对象*/
-			shipperId = (Long) enterpriseDao.queryShipperByNamePhone(shipperName, shipperPhone);
-			
-			if (shipperId == null) {
-				/* 说明买家不存在 */
-				Map<String, String> shipperMap = new HashMap<String, String>();
-				shipperMap.put("name", shipperName);
-				shipperMap.put("phone", shipperPhone);
-				shipperMap.put("address", shipperAddress);
-				
-				/*记录商家的的经纬度信息*/
-				try{
-					String xy = rsEntity.getObj().toString();
-					String[] xys = xy.split(";");
-				    shipperMap.put("x", xys[0]);
-				    shipperMap.put("y", xys[1]);
-				}catch(Exception e){
-					log.error("["+shipperAddress+"]地址正确，但是无法提取经纬度信息");
-				}
-				enterpriseDao.createShipper(shipperMap);
-				shipperId = DaoHelper.getPrimaryKey();
-				
-				shipperEntity.setId(String.valueOf(shipperId));
-				shipperEntity.setAddress(shipperAddress);
-				shipperEntity.setAddress_x(shipperMap.get("x"));
-				shipperEntity.setAddress_y(shipperMap.get("y"));
-				shipperEntity.setName(shipperName);
-				shipperEntity.setPhone(shipperPhone);
+		/*如果未指定商家编号，需要从数据库中根据商家名称或者手机号码检索或者新建一个商家(如果指定了商家编号，只需要直接使用该编号当外键即可)*/
+		if (StringUtils.isBlank(shipperId)) {
+
+			/* 发货人验证 */
+			String shipperName = map.get("shipper_name");
+			if (StringUtils.isBlank(shipperName)) {
+				throw new BaseSupportException("参数:发货人姓名为空");
 			}
-		} catch (Exception e) {
-			throw new BaseSupportException(e);
+
+			/* 发货人电话验证(后期考虑使用正则判断电话号码是否符合规则) */
+			String shipperPhone = map.get("shipper_phone");
+			if (StringUtils.isBlank(shipperPhone)) {
+				throw new BaseSupportException("参数:发货人电话为空");
+			}
+
+			/* 发货人地址验证 */
+			String shipperAddress = map.get("shipper_address");
+			if (StringUtils.isBlank(shipperAddress)) {
+				throw new BaseSupportException("参数:发货人地址为空");
+			}
+
+			/*
+			 * 用百度地图验证卖家地址是否存在(需要优化，以后需要调整为：如果商家已经存在，判断库中得地址和当前传入的地址是否一样
+			 * 这样可以解决商家搬家的问题)
+			 */
+			ResultEntity rsEntity = new ResultEntity();
+
+			/* 判断前段是否已经获取了经纬度 */
+			String shipperAddressX = map.get("shipper_address_x");
+			String shipperAddressY = map.get("shipper_address_y");
+			if (StringUtils.isNotBlank(shipperAddressX)
+					&& StringUtils.isNotBlank(shipperAddressY)) {
+				rsEntity.setSuccess(true);
+				rsEntity.setObj(shipperAddressX + ";" + shipperAddressY);
+			} else {
+				try {
+					rsEntity = AddressUtils.validateAddressByBDMap(shipperAddress, null);
+				} catch (BaseSupportException e) {
+					throw e;
+				}
+			}
+
+			if (!rsEntity.isSuccess()) {
+				throw new BaseSupportException("参数:发货人地址不正确");
+			}
+
+			/* 判断买家是否存在(如果存在返回用户ID；如果不存在先创建一个用户，然后返回该用户ID) */
+
+			/* 两个冗余字段，在运单提交 自动分单的时候，需要使用商家位置为中心点做配送优化 */
+			
+			Long spid = null;
+			try {
+
+				/* 后期queryShipperByNamePhone方法改为返回值为 shipperEntity对象 */
+				spid = (Long) enterpriseDao.queryShipperByNamePhone(
+						shipperName, shipperPhone);
+
+				if (shipperId == null) {
+					/* 说明买家不存在 */
+					Map<String, String> shipperMap = new HashMap<String, String>();
+					shipperMap.put("name", shipperName);
+					shipperMap.put("phone", shipperPhone);
+					shipperMap.put("address", shipperAddress);
+
+					/* 记录商家的的经纬度信息 */
+					try {
+						String xy = rsEntity.getObj().toString();
+						String[] xys = xy.split(";");
+						shipperMap.put("x", xys[0]);
+						shipperMap.put("y", xys[1]);
+					} catch (Exception e) {
+						log.error("[" + shipperAddress + "]地址正确，但是无法提取经纬度信息");
+					}
+					enterpriseDao.createShipper(shipperMap);
+					spid = DaoHelper.getPrimaryKey();
+
+					shipperEntity.setId(String.valueOf(shipperId));
+					shipperEntity.setAddress(shipperAddress);
+					shipperEntity.setAddress_x(shipperMap.get("x"));
+					shipperEntity.setAddress_y(shipperMap.get("y"));
+					shipperEntity.setName(shipperName);
+					shipperEntity.setPhone(shipperPhone);
+				}
+			} catch (Exception e) {
+				throw new BaseSupportException(e);
+			}
+			shipperId = String.valueOf(spid);
+		}else{
+			shipperEntity = (ShipperEntity)enterpriseDao.queryShipperById(shipperId);
+			if(shipperEntity==null){
+				throw new BaseSupportException("非法的商家编号");
+			}
 		}
-		
 		
 		/*-----------------------------拼装运单数据-------------------------------------*/
 		
 		/*拼装运单数据*/
 		WayBillEntity waybillEntity = new WayBillEntity();
 		
+		/*商家自己的订单id*/
+		waybillEntity.setShipper_origin_id(originId);
 		/*运单所在的省市信息*/
 		waybillEntity.setProvince_name(provinceName);
 //		waybillEntity.setCity_name(cityName);
@@ -551,12 +578,6 @@ public class WaybillServiceImpl implements WaybillService{
 		waybillEntity.setPayment_status("0");
 		waybillEntity.setWaybill_type("2");
 		
-		/*根据城市名，获取负责该城市的配送企业列表*/
-		List<EnterpriseCityEntity> entList = (List<EnterpriseCityEntity>)enterpriseDao.queryEnterpriseByCityInfo(null, null, cityCode, null);
-		if(entList==null || entList.size()==0){
-		   throw new BaseSupportException("该城市无配送团队");	
-		}
-		
 		try {
 			waybillDao.batchCreateKSBWayBillByBuyerAddress(waybillEntity, buyersList);
 		} catch (Exception e) {
@@ -564,7 +585,7 @@ public class WaybillServiceImpl implements WaybillService{
 		}
 		
 		/*异步把运单 数据放入到redis，自动优化分单*/
-		WaybillAllocationStrategy thread2Redis = new WaybillAllocationStrategy(shipperEntity,waybillEntity, buyersList,entList);
+		WaybillAllocationStrategy thread2Redis = new WaybillAllocationStrategy(psId,shipperEntity,waybillEntity, buyersList,cityCode);
 		thread2Redis.run();
 		
 		return true;
@@ -580,23 +601,42 @@ public class WaybillServiceImpl implements WaybillService{
 		WayBillEntity waybillEntity = null;
 		List<BuyerEntity> buyerList = null;
 		ShipperEntity shipperEntity = null;
-		List<EnterpriseCityEntity> entList=null;
-		public WaybillAllocationStrategy(ShipperEntity shipperEntity,WayBillEntity waybillEntity,List<BuyerEntity> buyerList,List<EnterpriseCityEntity> entList){
+		String cityCode=null;
+		String psId = null;
+		String originId = null;
+		public WaybillAllocationStrategy(String psId,ShipperEntity shipperEntity,WayBillEntity waybillEntity,List<BuyerEntity> buyerList,String cityCode){
 			this.waybillEntity = waybillEntity;
 			this.buyerList = buyerList;
 			this.shipperEntity = shipperEntity;
-			this.entList = entList;
+			this.cityCode = cityCode;
+			this.psId = psId;
+			//this.originId = originId;
 		}
 		
 		public void run(){
 			
 			/*获取客户选择的配送平台*/
-			int psPlatform = Integer.parseInt(waybillEntity.getThird_platform_id());
+			int psPlatform = Integer.parseInt(psId);
 			switch (psPlatform) {
 			case 0:
-				/*系统自动分配配送公司(通过webapi提交的订单，订单默认分配。之后分配策略需要修改)*/
-				String eid = entList.get(0).getEnterprise_id();
-				ksbStrategy(waybillEntity.getCity_code(),shipperEntity.getAddress_x(),shipperEntity.getAddress_y(),buyerList, eid);
+				String eid = waybillEntity.getThird_platform_id();
+				
+				/*如果是快送宝平台，并且商家指定了配送公司，则无需再进行后续处理*/
+				if(StringUtils.isNotBlank(eid)){
+					return;
+				}
+				
+				boolean autoAllocate = false;
+				if(StringUtils.isBlank(eid)){
+					/*根据城市名，获取负责该城市的配送企业列表*/
+					List<EnterpriseCityEntity> entList = (List<EnterpriseCityEntity>)enterpriseDao.queryEnterpriseByCityInfo(null, null, cityCode, null);
+					if(entList==null || entList.size()==0){
+					   throw new BaseSupportException("该城市无配送团队");	
+					}
+					eid = entList.get(0).getEnterprise_id();
+					autoAllocate = true;
+				}
+				ksbStrategy(waybillEntity.getCity_code(),shipperEntity.getAddress_x(),shipperEntity.getAddress_y(),buyerList, eid,autoAllocate);
 				break;
 			case 1:	
                 /*达达配送*/
@@ -619,16 +659,20 @@ public class WaybillServiceImpl implements WaybillService{
 		}
 	}
 	
-	private void ksbStrategy(String cityCode,String sp_x,String sp_y,List<BuyerEntity> buyerList,String eid){
+	private void ksbStrategy(String cityCode,String sp_x,String sp_y,List<BuyerEntity> buyerList,String eid,boolean autoAllocate){
 		
 		/*批量把快送宝运单提交到 达达平台*/
 		
 		for(BuyerEntity be : buyerList){
 			String ksbId = be.getWbid();
-			waybillDao.allocationWayBill2ThirdParty(ksbId, eid, "0");
+			waybillDao.allocationWayBill2ThirdParty(ksbId, eid, null);
 			
-			/*同时把订单放入到 待分配表中*/
-			waybillDao.saveUnallocateWaybill(ksbId, cityCode, sp_x, sp_y, eid);
+			/*订单是否需要通过快送宝平台自动分配*/
+			if(autoAllocate){
+				/*同时把订单放入到 待分配表中*/
+				waybillDao.saveUnallocateWaybill(ksbId, cityCode, sp_x, sp_y, eid);	
+			}
+
 		}
 	}
 	

@@ -217,8 +217,11 @@ public class WaybillDao {
 	@Update
 	public Object allocationWayBill2ThirdParty(@SqlParameter("waybill_id") String wayBillId,@SqlParameter("third_platform_id") String thirdPlatformId,@SqlParameter("third_order_id") String thirdOrderId){
 		
-		StringBuilder sb = new StringBuilder("update waybill set THIRD_PARTY_WAYBILL_ID=#{third_order_id},THIRD_PLATFORM_ID=#{third_platform_id} where id=#{waybill_id}");
-		
+		StringBuilder sb = new StringBuilder("update waybill set THIRD_PARTY_WAYBILL_ID=#{third_order_id} ");
+		if(StringUtils.isNotBlank(thirdOrderId)){
+			sb.append(" ,THIRD_PLATFORM_ID=#{third_platform_id}  ");
+		}
+		sb.append(" where id=#{waybill_id} ");
 		return sb.toString();
 	}
 

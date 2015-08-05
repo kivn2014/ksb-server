@@ -86,6 +86,22 @@ public class EnterpriseDao {
 	}
 	
 	/**
+	 * 根据商家编号，查询商家信息
+	 * @param id
+	 * @return
+	 */
+	@Author("shipeng.hou")
+	@SingleDataSource(1)
+	@Select(collectionType=CollectionType.bean,resultType=ShipperEntity.class)
+	public Object queryShipperById(@SqlParameter("id")String id){
+		
+		StringBuilder sb = new StringBuilder("select id,name,address,address_x,address_y,phone from shippers where id=#{id}");
+		return sb.toString();
+	}
+	
+	
+	
+	/**
 	 * 商家信息检索
 	 * @param shipperId
 	 * @param shipperName
