@@ -388,7 +388,7 @@ public class UserDao {
 		/*手机号*/
 		if(StringUtils.isNotBlank(entity.getPhone())){
 			entity.setPhone("%"+entity.getPhone()+"%");
-			sb.append(" and c.phone=#{entity.phone} ");
+			sb.append(" and c.phone like #{entity.phone} ");
 		}
 		
 		/*隶属企业*/

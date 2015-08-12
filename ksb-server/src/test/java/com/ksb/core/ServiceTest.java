@@ -181,8 +181,8 @@ public class ServiceTest {
 		e1.setReal_name("测试1");
 		e1.setName("test1");
 		e1.setEnterprise_id("100");
-		e1.setPhone("991");
-		e1.setPwd("991");
+		e1.setPhone("992");
+		e1.setPwd("992");
 		
 		list.add(e);
 		list.add(e1);
@@ -331,9 +331,7 @@ public class ServiceTest {
 		
 		shipperService.querySpUser("500", "", 0, 10);
 		
-		
 	}
-	
 	
 	public void spCreateWaybill(){
 		

@@ -40,3 +40,6 @@
 2015.07.08 at 23:51:36 CST TRACE com.ksb.openapi.mobile.service.impl.ShipperServiceImpl 575 querySpUser - entry params(请求userDao.querySpUser: 参数：, 500, , 0, 10)
 2015.07.08 at 23:53:32 CST TRACE com.ksb.openapi.mobile.service.impl.ShipperServiceImpl 566 querySpUser - entry params(500, , 0, 10)
 2015.07.08 at 23:53:35 CST TRACE com.ksb.openapi.mobile.service.impl.ShipperServiceImpl 575 querySpUser - entry params(请求userDao.querySpUser: 参数：, 500, , 0, 10)
+2015.08.12 at 21:00:00 CST TRACE com.ksb.job.service.WaybillJobService 47 handleUnAllocateWaybill - entry params(1439308800000, 1439384400029)
+2015.08.12 at 21:00:00 CST DEBUG com.ksb.job.service.WaybillJobService 56 handleUnAllocateWaybill - waybill和unallocate_waybill同步完毕
+2015.08.12 at 21:00:00 CST DEBUG com.ksb.job.service.WaybillJobService 67 handleUnAllocateWaybill - 没有未分配的订单
