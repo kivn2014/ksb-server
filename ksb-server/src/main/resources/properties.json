@@ -1,6 +1,6 @@
 {
     "redis.host":{
-        "value":"db.3gongli.com",
+        "value":"redis.3gongli.com",
         "comments":""
     }, 
     "redis.port":{

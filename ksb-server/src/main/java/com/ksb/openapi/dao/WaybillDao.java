@@ -624,7 +624,6 @@ public class WaybillDao {
 		 if(StringUtils.isNotBlank(waybillId)){
 			 sb.append(" and wb.id=#{m.id} ");
 		 }
-		 
 
 		 /*是否需要匹配配送员*/
 		 if(StringUtils.isNotBlank(cnameSql)){

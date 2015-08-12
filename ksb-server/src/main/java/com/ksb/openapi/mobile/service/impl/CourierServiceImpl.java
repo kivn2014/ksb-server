@@ -186,6 +186,17 @@ public class CourierServiceImpl implements CourierService {
 		}
 	}
 
+	public void batchCreateCourier(List<CourierEntity> list){
+		
+		try{
+			userDao.batchCreateCourier(list);
+		}catch(Exception e){
+			throw new BaseSupportException(e);
+		}
+	}
+	
+	
+	
 	@Override
 	public void updateCourierWorkStatus(String cid,String eid, String workStatus,String x,String y) {
 		

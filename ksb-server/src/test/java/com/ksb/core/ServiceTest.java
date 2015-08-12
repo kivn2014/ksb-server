@@ -60,8 +60,8 @@ public class ServiceTest {
 	@Autowired
 	UserDao userDao;
 	
-	//@Autowired
-	//CourierService courierService;
+	@Autowired
+	CourierService courierService;
 
 	@Autowired
 	EretailerService eretailerService;
@@ -156,7 +156,40 @@ public class ServiceTest {
 		
 		//shipperCancelWaybill();
 		//saveUnallocate();
-		searchWaybillTemp();
+		//searchWaybillTemp();
+		
+		batchSaveCourier();
+	}
+	
+	
+	public void batchSaveCourier(){
+		
+		List<CourierEntity> list = new ArrayList<CourierEntity>();
+		
+		CourierEntity e = new CourierEntity();
+		e.setDelivery_status("1");
+		e.setWork_status("2");
+		e.setReal_name("测试1");
+		e.setName("test1");
+		e.setEnterprise_id("100");
+		e.setPhone("991");
+		e.setPwd("991");
+		
+		CourierEntity e1 = new CourierEntity();
+		e1.setDelivery_status("1");
+		e1.setWork_status("2");
+		e1.setReal_name("测试1");
+		e1.setName("test1");
+		e1.setEnterprise_id("100");
+		e1.setPhone("991");
+		e1.setPwd("991");
+		
+		list.add(e);
+		list.add(e1);
+		
+		courierService.batchCreateCourier(list);	
+		
+		System.out.println("=====");
 	}
 	
 	
@@ -237,7 +270,7 @@ public class ServiceTest {
 		
 		/*增加商家版app版本*/
 		ProductVersionEntity entity = new ProductVersionEntity();
-		entity.setVersion_num(5.0);
+		entity.setVersion_num(5);
 		entity.setVersion_code("V5.0.1");
 		entity.setProduct_type(ProductType.SP.getName());
 	    productVersionDao.createProductVersion(entity);

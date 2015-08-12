@@ -54,7 +54,7 @@ public class ProductVersionDao {
 		/*所有买家*/
 		StringBuilder sb = new StringBuilder();
 		sb.append("select id,version_num,version_code,product_type,FROM_UNIXTIME((publish_time/1000),'%Y-%m-%d %T') publish_time from product_version where product_type=#{pt} ");
-		sb.append(" order by publish_time desc limit 1 ");
+		sb.append(" order by version_num desc limit 1 ");
 		return sb.toString();
 	}
 }

@@ -1,5 +1,6 @@
 package com.ksb.openapi.dao;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
@@ -318,6 +319,15 @@ public class UserDao {
 		return sb.toString();
 	}
 	
+	@Author("shipeng.hou")
+	@SingleDataSource(1)
+	@Insert		
+	public Object batchCreateCourier(@SqlParameter("list") List<CourierEntity> list){
+		
+		StringBuilder sb = new StringBuilder(" insert into courier(id,name,real_name,status,work_status,phone,star_level,enterprise_id,password,src_password,delivery_status) values ");
+		sb.append("(#{"+ReservedWord.snowflake+"},#{list."+ReservedWord.index+".name},#{list."+ReservedWord.index+".real_name},0,#{list."+ReservedWord.index+".work_status},#{list."+ReservedWord.index+".phone},0,#{list."+ReservedWord.index+".enterprise_id},#{list."+ReservedWord.index+".pwd},#{list."+ReservedWord.index+".srcPwd},#{list."+ReservedWord.index+".delivery_status})");
+		return sb.toString();
+	}
 	
 	/**
 	 * 
