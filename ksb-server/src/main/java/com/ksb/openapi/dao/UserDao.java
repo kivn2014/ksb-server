@@ -226,9 +226,8 @@ public class UserDao {
 		StringBuilder sb = new StringBuilder("update courier set work_status=#{work_status} ");
 		
 		if(StringUtils.isNotBlank(x) && StringUtils.isNotBlank(y)){
-			sb.append(" ,address_x=#{x},address_y=#{y} ");
+			sb.append(" ,address_x=#{x},address_y=#{y},report_time=(UNIX_TIMESTAMP() * 1000) ");
 		}
-		
 		sb.append(" where id=#{cid} ");
 		return sb.toString();
 	}
@@ -258,7 +257,7 @@ public class UserDao {
 	@Update
 	public Object updateCourierGps(@SqlParameter("cid") String cid,@SqlParameter("x") String x,@SqlParameter("y") String y){
 	
-		StringBuilder sb = new StringBuilder("update courier set address_x=#{x},address_y=#{y} where id=#{cid} ");
+		StringBuilder sb = new StringBuilder("update courier set address_x=#{x},address_y=#{y},report_time=(UNIX_TIMESTAMP() * 1000) where id=#{cid} ");
 		
 		return sb.toString();
 	}
@@ -365,11 +364,11 @@ public class UserDao {
 	@Select(collectionType=CollectionType.beanList,resultType= CourierEntity.class,paging = @Paging(skip = "skip", size = "size"), queryCount = true)
 	public Object queryCourierInList(@SqlParameter("entity") CourierEntity entity,@SqlParameter("skip") int skip,@SqlParameter("size") int size){
 		
-		StringBuilder sb = new StringBuilder("select c.id,c.name,c.real_name,c.phone,c.star_level,c.status,c.work_status,c.delivery_status,e.id enterprise_id,c.address_x,c.address_y,e.name enterprise_name ");
+		StringBuilder sb = new StringBuilder("select c.id,c.name,c.real_name,c.phone,c.star_level,c.status,c.work_status,c.delivery_status,e.id enterprise_id,c.address_x,c.address_y,e.name enterprise_name,FROM_UNIXTIME((c.report_time/1000),'%Y-%m-%d %T') report_time ");
 		
 		sb.append(" from courier c join enterprise e on c.enterprise_id=e.id ");
 		sb.append(" where 1=1");
-		
+	
 		/*cid*/
 		if(StringUtils.isNotBlank(entity.getId())){
 			sb.append(" and c.id=#{entity.id} ");
