@@ -17,7 +17,6 @@
 	</properties>
 
 
-
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -111,12 +110,35 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+	<dependency>
+		<groupId>redis.clients</groupId>
+		<artifactId>jedis</artifactId>
+		<version>3.0.0-beta-SNAPSHOT</version>
+	</dependency>
 		<dependency>
-			<groupId>redis.clients</groupId>
-			<artifactId>jedis</artifactId>
-			<version>3.0.0-beta-SNAPSHOT</version>
-		</dependency>		
-	</dependencies>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.2.2</version>
+		</dependency>	
+	<dependency>
+		<groupId>Pingplusplus</groupId>
+		<artifactId>pingpp-java</artifactId>
+		<version>2.0.10</version>
+		<type>jar</type>
+	</dependency>			
+ </dependencies>
+	<repositories>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>center</id>
+			<name>bintray</name>
+			<url>http://jcenter.bintray.com</url>
+		</repository>
+    
+    </repositories>
+
 
 	<build>
 		<plugins>

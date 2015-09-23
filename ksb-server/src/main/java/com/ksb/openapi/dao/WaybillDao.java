@@ -8,6 +8,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Repository;
 
 import com.esotericsoftware.minlog.Log;
+import com.ksb.openapi.entity.BillEntity;
 import com.ksb.openapi.entity.BuyerEntity;
 import com.ksb.openapi.entity.WayBillEntity;
 import com.ksb.openapi.util.DateUtil;
@@ -34,6 +35,29 @@ import autonavi.online.framework.sharding.entry.entity.CollectionType;
 @Repository
 public class WaybillDao {
 
+	/**
+	 * 配送费用账单
+	 * @param bill
+	 * @return
+	 */
+	@Author("shipeng.hou")
+	@SingleDataSource(1)
+	@Insert
+	public Object createBillRecord(@SqlParameter("bill") BillEntity bill){
+		
+		StringBuilder sb = new StringBuilder("insert into delivery_bill_record(");
+		
+		/*拼装字段*/
+		sb.append("id,waybill_id,sp_id,cid,waybill_distance,amount,status,create_time");
+		
+		sb.append(") values(");
+		/*拼装字段值*/
+		sb.append("#{bill.id},#{bill.waybill_id},#{bill.sp_id},#{bill.cid},#{bill.waybill_distance},#{bill.amount},#{bill.status},(UNIX_TIMESTAMP() * 1000)");
+		
+		sb.append(")");
+		return sb.toString();
+	}
+	
 	/**
 	 * 运单数据入库
 	 * @param map
@@ -388,6 +412,20 @@ public class WaybillDao {
 		 return sb.toString();
 	}
 
+	@Author("shipeng.hou")
+	@SingleDataSource(1)
+	@Select(collectionType=CollectionType.column,resultType=Long.class)
+	public Object queryCourierTodayUnCompleteWaybill(@SqlParameter("cid") String courierId){
+		
+		long startTime = DateUtil.getTodayStartTime();
+		long endTime = DateUtil.getTodayEndTime();
+		StringBuilder sb = new StringBuilder("select count(id) from waybill where courier_id=#{cid} and (waybill_status=0 or waybill_status=1)");
+		sb.append(" and create_time>="+startTime+" and create_time<="+endTime+" ");
+		
+		return sb.toString();
+	}
+	
+	
 	/**
 	 * 配送员查询运单数据(配送员APP O2O运单数据展示)
 	 * @param courierId
@@ -410,6 +448,7 @@ public class WaybillDao {
 		 * 状态
 		 * 支付状态
 		 * 支付类型
+		 * 发货人编号
 		 * 发货人姓名/发货人电话
 		 * 发货人地址
 		 * 发货人地址明细
@@ -433,6 +472,9 @@ public class WaybillDao {
 		 * 商品价格
 		 * 备注
 		 * 
+		 * 城市名(逆地理编码用)
+		 * 
+		 * 订单配送距离
 		 * 
 		 */
 		 long startTime = DateUtil.getTodayStartTime();
@@ -440,11 +482,11 @@ public class WaybillDao {
 		 long endTime = DateUtil.getTodayEndTime();
 		
 		 StringBuilder sb = new StringBuilder();
-		 sb.append("select wb.id,wb.waybill_status,sp.name shipper_name,sp.phone shipper_phone,sp.address shipper_address,ifnull(sp.address_detail,'') shipper_address_detail,sp.address_x shipper_x,sp.address_y shipper_y,");
+		 sb.append("select wb.id,wb.waybill_status,sp.name shipper_name,sp.phone shipper_phone,sp.id shipper_id,sp.address shipper_address,ifnull(sp.address_detail,'') shipper_address_detail,sp.address_x shipper_x,sp.address_y shipper_y,");
 		 sb.append(" ifnull(u.name,'未填') buyer_name,ifnull(u.real_name,'') buyer_real_name,ifnull(u.phone,'') buyer_phone,ifnull(u.address,'') buyer_address,ifnull(u.address_x,'0') buyer_x,ifnull(u.address_y,'0') buyer_y,");
 		 sb.append(" wb.booking_fetch is_booking,ifnull(FROM_UNIXTIME((wb.booking_fetch_time/1000),'%Y-%m-%d %H:%i'),'') booking_fetch_time,FROM_UNIXTIME((wb.create_time/1000),'%Y-%m-%d %T') create_time,FROM_UNIXTIME((wb.finish_time/1000),'%Y-%m-%d %T') finish_time, ");
 		 sb.append(" wb.is_prepay is_prpay,ifnull(wb.pay_shipper_fee,'0') pay_shipper_fee,ifnull(wb.fetch_buyer_fee,'0') fetch_buyer_fee,wb.cargo_price,wb.waybill_fee waybill_fee,ifnull(wb.remarks,'') remarks,wb.pay_type pay_type,wb.payment_status payment_status, ");
-		 sb.append(" wb.cargo_type,wb.cargo_num,wb.waybill_num ");
+		 sb.append(" wb.cargo_type,wb.cargo_num,wb.waybill_num,wb.img_name,wb.waybill_distance,wb.city_name ");
 		 
 		 /*上缴费用*/
 		 //sb.append(" CASE WHEN (pay_type=2) THEN 0 ELSE ifnull((convert(FETCH_BUYER_FEE , SIGNED INTEGER)-convert(PAY_SHIPPER_FEE ,SIGNED INTEGER)),0) END handover_fee ");
@@ -508,6 +550,7 @@ public class WaybillDao {
 		 * 货物类型
 		 * 货物数量
 		 * 总单量
+		 * 货物价格
 		 * 
 		 * 是否预定
 		 * 预定时间
@@ -522,12 +565,17 @@ public class WaybillDao {
 		 * 配送员名称
 		 * 配送员手机号
 		 * 
+		 * 订单费用 waybill_amount
+		 * 订单距离 waybill_distance
+		 * 
+		 * 
 		 */
 		 StringBuilder sb = new StringBuilder();
 		 sb.append("select wb.id,wb.waybill_status,sp.name shipper_name,sp.phone shipper_phone,sp.address shipper_address,sp.address_x shipper_x,sp.address_y shipper_y,c.real_name courier_real_name,c.phone courier_phone,");
 		 sb.append(" u.name buyer_name,u.real_name buyer_real_name,u.phone buyer_phone,u.address buyer_address,u.address_x buyer_x,u.address_y buyer_y,");
 		 sb.append(" wb.booking_fetch is_booking,ifnull(FROM_UNIXTIME((wb.booking_fetch_time/1000),'%Y-%m-%d %H:%i'),'') booking_fetch_time,FROM_UNIXTIME((wb.create_time/1000),'%Y-%m-%d %T') create_time,FROM_UNIXTIME((wb.finish_time/1000),'%Y-%m-%d %T') finish_time, ");
-		 sb.append(" wb.is_prepay is_prpay,ifnull(wb.pay_shipper_fee,'0') pay_shipper_fee,ifnull(wb.fetch_buyer_fee,'0') fetch_buyer_fee,wb.cargo_price,wb.cargo_type,wb.cargo_num,wb.waybill_num,wb.waybill_fee waybill_fee,ifnull(wb.remarks,'') remarks,wb.pay_type pay_type,wb.payment_status payment_status ");
+		 sb.append(" wb.is_prepay is_prpay,ifnull(wb.pay_shipper_fee,'0') pay_shipper_fee,ifnull(wb.fetch_buyer_fee,'0') fetch_buyer_fee,wb.cargo_price,wb.cargo_type,wb.cargo_num,wb.waybill_num,wb.waybill_fee waybill_fee,ifnull(wb.remarks,'') remarks,wb.pay_type pay_type,wb.payment_status payment_status, ");
+		 sb.append(" wb.waybill_amount,wb.waybill_distance ");
 		 //sb.append(" CASE WHEN (pay_type=2) THEN 0 ELSE ifnull((convert(FETCH_BUYER_FEE , SIGNED INTEGER)-convert(PAY_SHIPPER_FEE ,SIGNED INTEGER)),0) END handover_fee ");
 		 
 		 sb.append(" from shippers sp join waybill wb on sp.id=wb.shippers_ID left join courier c on c.id = wb.courier_id left join user u on u.id = wb.buyer_id ");
@@ -840,8 +888,15 @@ public class WaybillDao {
 		 * cargo_price
 		 * fetch_buyer_fee
 		 * finish_time
+		 * img_name
+		 * buyer_id
+		 * have_bill
 		 * remarks
+		 * waybill_distance
+		 * waybill_amount
+		 * 
 		 * */
+		
 		
 		if(StringUtils.isNotBlank(wb.getWaybill_status())){
 			sb.append(" ,waybill_status=#{entity.waybill_status} ");
@@ -875,6 +930,26 @@ public class WaybillDao {
 			sb.append(" ,finish_time=(UNIX_TIMESTAMP() * 1000)");
 		}
 		
+		if(StringUtils.isNotBlank(wb.getImg_name())){
+			sb.append(" ,img_name=#{entity.img_name} ");
+		}
+		
+		if(StringUtils.isNotBlank(wb.getBuyer_id())){
+			sb.append(" , buyer_id=#{entity.buyer_id}");
+		}
+		
+		if(StringUtils.isNotBlank(wb.getWaybill_distance())){
+			sb.append(" ,waybill_distance=#{entity.waybill_distance} ");
+		}
+		if(StringUtils.isNotBlank(wb.getHave_bill())){
+			sb.append(" ,have_bill=#{entity.have_bill} ");
+		}
+		if(StringUtils.isNotBlank(wb.getSys_remarks())){
+			sb.append(" ,sys_remarks=#{entity.sys_remarks}");
+		}
+		if(StringUtils.isNotBlank(wb.getWaybill_amount())){
+			sb.append(" ,waybill_amount=#{entity.waybill_amount}");
+		}		
 		sb.append(" where id=#{entity.id} ");
 		
 		if(StringUtils.isNotBlank(wb.getCourier_id())){
@@ -912,9 +987,14 @@ public class WaybillDao {
 	@Author("shipeng.hou")
 	@SingleDataSource(1)
 	@Update
-	public Object batchAllocateWaybill2Courier(@SqlParameter("cid") String courierId,@SqlParameter("status")String status,@SqlParameter("list") List<String> waybillList){
+	public Object batchAllocateWaybill2Courier(@SqlParameter("cid") String courierId,@SqlParameter("pseid")String deliveryEid,@SqlParameter("status")String status,@SqlParameter("list") List<String> waybillList){
 		
-		StringBuilder sb = new StringBuilder("update waybill set courier_id=#{cid},waybill_status=#{status} where id=#{list."+ReservedWord.index+"}");
+		StringBuilder sb = new StringBuilder("update waybill set courier_id=#{cid},waybill_status=#{status} ");
+		
+		if(StringUtils.isNotBlank(deliveryEid)){
+			sb.append(",third_platform_id=#{pseid} ");
+		}
+		sb.append(" where id=#{list."+ReservedWord.index+"} ");
 		return sb.toString();
 	}
 	
@@ -934,7 +1014,7 @@ public class WaybillDao {
 		
 		StringBuffer sb = new StringBuffer("");
 		
-		sb.append(" select count(id) total_waybill,ifnull(sum(pay_shipper_fee),0) total_shipper_fees,ifnull(sum(fetch_buyer_fee),0) total_buyer_fees from waybill where 1=1 ");
+		sb.append(" select count(id) total_waybill,ifnull(sum(pay_shipper_fee),0) total_shipper_fees,ifnull(sum(fetch_buyer_fee),0) total_buyer_fees,ifnull(sum(cargo_price),0) total_price from waybill where 1=1 ");
 		
 		if(StringUtils.isNotBlank(waybillType)){
 			sb.append(" and waybill_type=#{t}  ");
@@ -943,7 +1023,7 @@ public class WaybillDao {
 			sb.append(" and courier_id=#{cid} ");
 		}
 		
-		sb.append(" and create_time>=#{st} and create_time<=#{et} ");
+		sb.append(" and create_time>=#{st} and create_time<=#{et} and waybill_status=5");
 		return sb.toString();
 	}
 	

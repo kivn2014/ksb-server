@@ -117,7 +117,7 @@ public class UserDao {
 		
 		sb.append("insert into user(id,name,password,real_name,status,phone,address,user_type,enterprise_id,address_x,address_y) values(");
 		
-		sb.append("#{"+ReservedWord.snowflake+"},#{be.name},'"+password+"',#{be.name},'"+status+"',#{be.phone},#{be.address},'"+user_type+"',"+enterprise_id+",#{be.address_x},#{be.address_y}");
+		sb.append("#{be.id},#{be.name},'"+password+"',#{be.name},'"+status+"',#{be.phone},#{be.address},'"+user_type+"',"+enterprise_id+",#{be.address_x},#{be.address_y}");
 		sb.append(")");
 		
 		return sb.toString();
@@ -134,6 +134,18 @@ public class UserDao {
 		sb.append("select id from user where name=#{name} and phone=#{phone} and enterprise_id=1");
 		return sb.toString();
 	}
+	
+	@Author("shipeng.hou")
+	@SingleDataSource(1)
+	@Select(collectionType=CollectionType.bean,resultType=BuyerEntity.class)
+	public Object queryBuyerIDByAddressAddress(@SqlParameter("phone") String userName,@SqlParameter("address") String address){
+		
+		/*所有买家*/
+		StringBuilder sb = new StringBuilder();
+		sb.append("select id,name,address,address_x,address_y,phone,status,user_type from user where phone=#{phone} and address=#{address} and enterprise_id=1");
+		return sb.toString();
+	}
+	
 	
 	@Author("shipeng.hou")
 	@SingleDataSource(1)
@@ -242,7 +254,7 @@ public class UserDao {
 	@SingleDataSource(1)
 	@Update
 	public Object updateCourierDeliveryStatus(@SqlParameter("cid") String cid,@SqlParameter("status") String status){
-		StringBuilder sb = new StringBuilder("update courier set delivery_status=#{status} where id=#{cid} ");
+		StringBuilder sb = new StringBuilder("update courier set delivery_status=#{status} where id=#{cid} and delivery_status!=#{status} ");
 	
 		return sb.toString();
 	}
@@ -282,10 +294,38 @@ public class UserDao {
 	@Author("shipeng.hou")
 	@SingleDataSource(1)
 	@Select(collectionType=CollectionType.bean,resultType=CourierEntity.class)
+	public Object queryFreeCourierInfo(@SqlParameter("id") String uid,@SqlParameter("real_name") String realname,@SqlParameter("phone") String phone){
+		
+		StringBuilder sb = new StringBuilder(" select c.id,c.name,c.real_name,c.status,c.work_status,c.phone,c.star_level,e.name enterprise_name,e.id enterprise_id from courier c join enterprise e on c.enterprise_id = e.id ");
+		sb.append(" where 1=1 and c.status=0 and c.work_status=1 ");
+		
+		/*拼装查询条件*/
+		if(StringUtils.isNotBlank(uid)){
+			sb.append(" and c.id=#{id} ");
+		}
+		if(StringUtils.isNotBlank(realname)){
+			sb.append(" and c.real_name like #{real_name} ");
+		}
+		if(StringUtils.isNotBlank(phone)){
+			sb.append(" and c.phone=#{phone} ");
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * 根据条件查询快递员信息(根据ID或者手机号)
+	 * @param uid
+	 * @param name
+	 * @param phone
+	 * @return
+	 */
+	@Author("shipeng.hou")
+	@SingleDataSource(1)
+	@Select(collectionType=CollectionType.bean,resultType=CourierEntity.class)
 	public Object queryCourierInfo(@SqlParameter("id") String uid,@SqlParameter("real_name") String realname,@SqlParameter("phone") String phone){
 		
 		StringBuilder sb = new StringBuilder(" select c.id,c.name,c.real_name,c.status,c.work_status,c.phone,c.star_level,e.name enterprise_name,e.id enterprise_id from courier c join enterprise e on c.enterprise_id = e.id ");
-		sb.append(" where 1=1 and status=0 and work_status=1 ");
+		sb.append(" where 1=1 c.work_status=1 ");
 		
 		/*拼装查询条件*/
 		if(StringUtils.isNotBlank(uid)){
@@ -298,9 +338,7 @@ public class UserDao {
 			sb.append(" and c.phone=#{phone} ");
 		}
 		return sb.toString();
-	}
-
-	
+	}	
 
 	
 	/**

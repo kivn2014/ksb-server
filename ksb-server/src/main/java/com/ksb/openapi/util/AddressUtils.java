@@ -141,7 +141,7 @@ public class AddressUtils {
 		
 		//大恒科技大厦 116.31198944614;39.988517521803
 		
-		ResultEntity r = validateAddressByBDMap("北京市海淀区苏州街大恒科技大厦",null);
+		ResultEntity r = validateAddressByBDMap("北京市海淀区丰四路68号","北京市");
 		System.out.println(r.getObj());
 		
 	}

@@ -523,13 +523,48 @@ public class EretailerServiceImpl implements EretailerService {
 		/*配送完成或者改为异常件*/
 		if(statusInt==5||statusInt<0){
 			try{
-				userDao.updateCourierDeliveryStatus(courierId, "0");
+				new AllocateWaybill(courierId).run();
 			}catch(Exception e){}
 		}
 		/*状态修改成功，配送记录表中 增加配送记录*/
-		
 	}
 
+	/**
+	 * 异步修改配送员的配送状态
+	 * @author houshipeng
+	 *
+	 */
+	class AllocateWaybill extends Thread{
+
+		private String courierId;
+		
+		public AllocateWaybill(String courierId){
+			this.courierId = courierId;
+		}
+		
+		@Override
+		public void run() {
+			/*判断该配送员下是否还有未完成的订单(只有该配送员名下所有的订单都配送完成，才把该配送员状态置为空闲)*/
+			Long unCompleteNum = 0L;
+			try{
+				unCompleteNum = (Long)waybillDao.queryCourierTodayUnCompleteWaybill(courierId);
+			}catch(Exception e){
+				log.error("查询["+courierId+"] 名下未完成的订单数异常: "+e.getMessage());
+			}
+			log.entry("["+courierId+"] 名下未完成的订单数："+unCompleteNum);
+			if(unCompleteNum == 0){
+				try{
+					userDao.updateCourierDeliveryStatus(courierId, "0");
+				}catch(Exception e){
+					log.error("修改配送员空闲/忙碌状态失败: "+e.getMessage());
+				}
+				
+			}
+		}
+	}
+			
+	
+	
 	@Override
 	public Map<String, Object> queryWaybillByCourier(String courierId,
 			String waybillId, String waybillStatus, int skip, int size) {

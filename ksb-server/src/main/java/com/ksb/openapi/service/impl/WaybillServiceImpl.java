@@ -77,7 +77,6 @@ public class WaybillServiceImpl implements WaybillService{
 			throw new BaseSupportException("未提供任何参数");
 		}
 		
-		
 		/*-------------------支付信息判断-------------------------------*/
 		
 		/*支付类型*/
@@ -486,7 +485,7 @@ public class WaybillServiceImpl implements WaybillService{
 				spid = (Long) enterpriseDao.queryShipperByNamePhone(
 						shipperName, shipperPhone);
 
-				if (shipperId == null) {
+				if (spid == null) {
 					/* 说明买家不存在 */
 					Map<String, String> shipperMap = new HashMap<String, String>();
 					shipperMap.put("name", shipperName);
@@ -504,7 +503,9 @@ public class WaybillServiceImpl implements WaybillService{
 					}
 					enterpriseDao.createShipper(shipperMap);
 					spid = DaoHelper.getPrimaryKey();
-
+					
+					/*设置商家编号*/
+					shipperId = String.valueOf(spid);
 					shipperEntity.setId(String.valueOf(shipperId));
 					shipperEntity.setAddress(shipperAddress);
 					shipperEntity.setAddress_x(shipperMap.get("x"));
@@ -515,7 +516,7 @@ public class WaybillServiceImpl implements WaybillService{
 			} catch (Exception e) {
 				throw new BaseSupportException(e);
 			}
-			shipperId = String.valueOf(spid);
+
 		}else{
 			shipperEntity = (ShipperEntity)enterpriseDao.queryShipperById(shipperId);
 			if(shipperEntity==null){
@@ -528,6 +529,7 @@ public class WaybillServiceImpl implements WaybillService{
 		/*拼装运单数据*/
 		WayBillEntity waybillEntity = new WayBillEntity();
 		
+		//waybillEntity.setShippers_id(shipperId);
 		/*商家自己的订单id*/
 		waybillEntity.setShipper_origin_id(originId);
 		/*运单所在的省市信息*/

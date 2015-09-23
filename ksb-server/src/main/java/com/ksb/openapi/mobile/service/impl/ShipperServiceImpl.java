@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -22,10 +23,12 @@ import com.ksb.openapi.em.WaybillType;
 import com.ksb.openapi.entity.EnterpriseCityEntity;
 import com.ksb.openapi.entity.EnterpriseEntity;
 import com.ksb.openapi.entity.ResultEntity;
+import com.ksb.openapi.entity.ShipperAddressEntity;
 import com.ksb.openapi.entity.ShipperEntity;
 import com.ksb.openapi.entity.ShipperUserEntity;
 import com.ksb.openapi.entity.WayBillEntity;
 import com.ksb.openapi.error.BaseSupportException;
+import com.ksb.openapi.mobile.service.CourierService;
 import com.ksb.openapi.mobile.service.ShipperService;
 import com.ksb.openapi.util.AddressUtils;
 import com.ksb.openapi.util.DateUtil;
@@ -45,6 +48,9 @@ public class ShipperServiceImpl implements ShipperService {
 	
 	@Autowired
 	WaybillDao waybillDao = null;
+	
+	@Autowired
+	CourierService courierService;
 	
 	@Override
 	public List<ShipperEntity> queryShipperList(Map<String, String> paraMap) {
@@ -76,6 +82,227 @@ public class ShipperServiceImpl implements ShipperService {
 		return rsList;
 	}
 
+	@Override
+	public List<ShipperAddressEntity> queryShipperAddressList(String sp_id){
+		
+		/*商家编号为空*/
+		if(StringUtils.isBlank(sp_id)){
+			throw new BaseSupportException("商家编号空为");
+		}
+		
+		List<ShipperAddressEntity> rsList = null;
+		try{
+			rsList = (List<ShipperAddressEntity>)enterpriseDao.queryShipperAddressList(sp_id);
+		}catch(Exception e){
+			throw new BaseSupportException(e);
+		}
+		
+		return rsList;
+	}
+
+	@Override
+	public void shipperDefaultAddress(String sp_id,String address_id){
+		
+		log.entry("request param:",sp_id,address_id);
+		
+		if(StringUtils.isBlank(sp_id)){
+			throw new BaseSupportException("商家编号为空");
+		}
+		if(StringUtils.isBlank(address_id)){
+			throw new BaseSupportException("未指定商家地址");
+		}
+		
+		try{
+			/*先重置商家所有的发货地址为 非默认地址*/
+			enterpriseDao.resetShipperDefaultAddress(sp_id);
+			
+			/*设置指定的地址为商家默认发货地址*/
+			enterpriseDao.shipperDefaultAddress(sp_id, address_id);
+			
+			/*把设置的默认地址拷贝到shipper表中(涉及字段:地址、门牌、经纬度、联系人信息)*/
+			enterpriseDao.copyDefault2Shippers(sp_id, address_id);
+			
+			log.entry("set default address sucess");
+		}catch(Exception e){
+			log.error("请求异常："+e.getMessage());
+			throw new BaseSupportException(e);
+		}
+	}
+	
+	@Override
+	public void cancelShipperAddress(String sp_id,String address_id){
+		if(StringUtils.isBlank(sp_id)){
+			throw new BaseSupportException("商家编号为空");
+		}
+		if(StringUtils.isBlank(address_id)){
+			throw new BaseSupportException("未指定商家地址");
+		}
+		
+		try{
+			
+			ShipperAddressEntity entity = (ShipperAddressEntity)enterpriseDao.queryShipperAddressById(sp_id, address_id);
+			/*商家下得地址不存在*/
+			if(entity==null){
+				throw new BaseSupportException("要删除的地址不存在");
+			}
+			String isDefaultAddress = entity.getIs_default();
+			/*当前默认地址不能删除*/
+			if("1".equals(isDefaultAddress)){
+				throw new BaseSupportException("默认地址不能删除");
+			}
+			enterpriseDao.cancelShipperAddress(sp_id, address_id);
+		}catch(Exception e){
+			throw new BaseSupportException(e);
+		}
+		
+	}
+	
+	
+	public void editShipperAddress(ShipperAddressEntity entity){
+		
+		if(entity==null){
+			throw new BaseSupportException("无任何参数");
+		}
+		
+		/*商家编号*/
+		if(StringUtils.isBlank(entity.getSp_id())){
+			throw new BaseSupportException("商家编号为空");
+		}
+		
+		/*商家地址编号*/
+		if(StringUtils.isBlank(entity.getId())){
+			throw new BaseSupportException("地址编号为空");
+		}
+		
+		/*地址信息*/
+		if(StringUtils.isBlank(entity.getAddress())){
+			throw new BaseSupportException("地址为空");
+		}
+		
+		/*联系人信息*/
+		if(StringUtils.isBlank(entity.getContact())){
+			throw new BaseSupportException("联系人为空");
+		}
+		
+		/*联系人手机号*/
+		if(StringUtils.isBlank(entity.getPhone())){
+			throw new BaseSupportException("联系人手机号为空");
+		}
+		
+		/*地址对应经纬度信息*/
+		if(StringUtils.isBlank(entity.getAddress_x()) || StringUtils.isBlank(entity.getAddress_y())){
+			throw new BaseSupportException("地址经纬度信息为空");
+		}
+		
+		/*citycode*/
+		if(StringUtils.isBlank(entity.getCity_code())){
+			throw new BaseSupportException("city_code为空");
+		}
+		
+		/*省市区*/
+		if(StringUtils.isBlank(entity.getProvince_name())){
+			throw new BaseSupportException("省信息为空");
+		}
+		
+		if(StringUtils.isBlank(entity.getCity_name())){
+			throw new BaseSupportException("市信息为空");
+		}
+		
+		if(StringUtils.isBlank(entity.getDistrict_name())){
+			throw new BaseSupportException("区/县信息为空");
+		}
+		
+		if(StringUtils.isBlank(entity.getIs_default())){
+			entity.setIs_default("0");
+		}
+		try{
+			enterpriseDao.editShipperAddress(entity);
+			
+			/*设置为默认地址*/
+			if(entity.getIs_default().equals("1")){
+				this.shipperDefaultAddress(entity.getSp_id(), entity.getId());
+			}
+		}catch(Exception e){
+			throw new BaseSupportException(e);
+		}
+	}
+	
+	@Override
+	public void addShipperAddress(ShipperAddressEntity entity){
+		
+		if(entity==null){
+			throw new BaseSupportException("无任何参数");
+		}
+		
+		/*商家编号*/
+		if(StringUtils.isBlank(entity.getSp_id())){
+			throw new BaseSupportException("商家编号为空");
+		}
+		
+		/*地址信息*/
+		if(StringUtils.isBlank(entity.getAddress())){
+			throw new BaseSupportException("地址为空");
+		}
+		
+		/*联系人信息*/
+		if(StringUtils.isBlank(entity.getContact())){
+			throw new BaseSupportException("联系人为空");
+		}
+		
+		/*联系人手机号*/
+		if(StringUtils.isBlank(entity.getPhone())){
+			throw new BaseSupportException("联系人手机号为空");
+		}
+		
+		/*地址对应经纬度信息*/
+		if(StringUtils.isBlank(entity.getAddress_x()) || StringUtils.isBlank(entity.getAddress_y())){
+			throw new BaseSupportException("地址经纬度信息为空");
+		}
+		
+		/*citycode*/
+		if(StringUtils.isBlank(entity.getCity_code())){
+			throw new BaseSupportException("city_code为空");
+		}
+		
+		/*省市区*/
+		if(StringUtils.isBlank(entity.getProvince_name())){
+			throw new BaseSupportException("省信息为空");
+		}
+		
+		if(StringUtils.isBlank(entity.getCity_name())){
+			throw new BaseSupportException("市信息为空");
+		}
+		
+		if(StringUtils.isBlank(entity.getDistrict_name())){
+			throw new BaseSupportException("区/县信息为空");
+		}
+		
+		/*新添加的发单地址,如果未指定是否为默认地址，默认值调为非默认地址*/
+		if(StringUtils.isBlank(entity.getIs_default())){
+			entity.setIs_default("0");
+		}
+		
+		try{
+			long addressId = DaoHelper.createPrimaryKey();
+			entity.setId(addressId+"");
+			enterpriseDao.createShipperAddress(entity);
+			
+			/*新添加的地址需要设置为默认地址*/
+			if(entity.getIs_default().equals("1")){
+//				enterpriseDao.resetShipperDefaultAddress(entity.getSp_id());
+//				enterpriseDao.shipperDefaultAddress(entity.getSp_id(), entity.getId());
+//				enterpriseDao.copyDefault2Shippers(entity.getSp_id(), entity.getId());
+				
+				this.shipperDefaultAddress(entity.getSp_id(), entity.getId());
+			}
+			
+		}catch(Exception e){
+			throw new BaseSupportException(e);
+		}
+		
+	}
+	
+	
 	@Override
 	public void createShipper(ShipperEntity shipperEntity) {
 		// TODO Auto-generated method stub
@@ -146,6 +373,7 @@ public class ShipperServiceImpl implements ShipperService {
 		return log.exit(rsEntity);
 	}
 
+	
 	@Override
 	public ShipperUserEntity updateShipperDefualtAddress(ShipperUserEntity entity){
 		
@@ -462,8 +690,8 @@ public class ShipperServiceImpl implements ShipperService {
 		}
 		String cityCode = paraMap.get("city_code");
 		if(StringUtils.isBlank(cityCode)){
-			log.error("城市名为空");
-			throw new BaseSupportException("城市名为空");
+			log.error("citycode为空");
+			throw new BaseSupportException("citycode为空");
 		}		
 		
 		String x = paraMap.get("x");
@@ -483,10 +711,10 @@ public class ShipperServiceImpl implements ShipperService {
         String waybillNum = paraMap.get("waybill_num");
         
         String courierId = paraMap.get("cid");
-        if(StringUtils.isBlank(courierId)){
-			log.debug("该订单无配送员，需要配送公司手工干预");
-			//throw new BaseSupportException("无配送员");
-        }
+//        if(StringUtils.isBlank(courierId)){
+//			log.debug("该订单无配送员，需要配送公司手工干预");
+//			//throw new BaseSupportException("无配送员");
+//        }
         
         WayBillEntity waybillEntity = new WayBillEntity();
         
@@ -498,24 +726,32 @@ public class ShipperServiceImpl implements ShipperService {
         /*一票多单*/
         waybillEntity.setWaybill_num(waybillNum);
         
-        /*配送员*/
-        waybillEntity.setCourier_id(courierId);
         /*运单隶属的电商*/
         waybillEntity.setShippers_id(shipperId);
         /*到付应收金额*/
-        waybillEntity.setCargo_price("0");
+        String cargoPrice = paraMap.get("cargo_price");
+        if(StringUtils.isBlank(cargoPrice)){
+        	cargoPrice = "0";
+        }
+        waybillEntity.setCargo_price(cargoPrice);
         /*是否需要到付*/	
         waybillEntity.setIs_topay("0");
         /*备注*/
         waybillEntity.setRemarks(remarks);
         
-        /*默认使用快送宝配送平台*/
-        String delivery_eid_id = paraMap.get("delivery_eid_id");
-        if(StringUtils.isBlank(delivery_eid_id)){
-        	//delivery_eid_id = "100";
-        	throw new BaseSupportException("该区域无可用的配送员");
-        }
-        waybillEntity.setThird_platform_id(delivery_eid_id);
+        waybillEntity.setCity_name(paraMap.get("city_name"));
+        
+        /*配送员*/
+//        waybillEntity.setCourier_id(courierId);
+//        
+//        /*默认使用快送宝配送平台*/
+//        String delivery_eid_id = paraMap.get("delivery_eid_id");
+//        if(StringUtils.isBlank(delivery_eid_id)){
+//        	throw new BaseSupportException("该区域无可用的配送员");
+//        }
+//        waybillEntity.setThird_platform_id(delivery_eid_id);
+        
+        
         /*运单状态(待接单、待取、配送中、完成、异常件)*/
         String status = paraMap.get("status");
         if(StringUtils.isBlank(status)){
@@ -529,29 +765,211 @@ public class ShipperServiceImpl implements ShipperService {
 		} catch (Exception e1) {throw new BaseSupportException(e1);}
         
         List<WayBillEntity> list = new ArrayList<WayBillEntity>();
-        list.add(waybillEntity);
-		
+       // list.add(waybillEntity);
+        
+        int wnum = Integer.parseInt(waybillEntity.getWaybill_num());
+        
+        List<String> psList = new ArrayList<String>();
+        /*订单需求总数转化为实际订单数*/
+        for(int i=1;i<=wnum;i++){
+        	try{
+        		WayBillEntity wb = waybillEntity.clone();
+        		String id = null;
+        		try{
+        			id = "3km-"+DaoHelper.createPrimaryKey().toString();
+        			wb.setId(id);
+        			wb.setWaybill_num("1");
+        		}catch(Exception e){}
+        		
+        		list.add(wb);
+        		psList.add(id);
+        	}catch(Exception e){
+        		throw new BaseSupportException("订单创建失败,请稍后重试");
+        	}
+        }
+      
         try{
 		    waybillDao.batchCreateKSBWayBill(list);
-		    
+		    list.clear();
 		    /*更新配送员的状态 为正在配送（正在配送的，不能继续接受新单）
 		     * 更新courier表的delivery_status字段值(0表示 未配送；1表示配送中)
 		     * 配送完毕，修改delivery_status为1
 		     * */
-		    if(StringUtils.isNotBlank(courierId)){
-		    	userDao.updateCourierDeliveryStatus(courierId, "1");
-		    }else{
-		    	/*说明该订单没有配送员，进入未分配表 unallocate_waybill table中*/
-		    	
-		    	new AsynSaveUnallocateWaybill(waybillEntity.getId(), cityCode, x, y, waybillEntity.getThird_platform_id()).run();
-		    }
+//		    if(StringUtils.isNotBlank(courierId)){
+//		    	userDao.updateCourierDeliveryStatus(courierId, "1");
+//		    }else{
+//		    	/*说明该订单没有配送员，进入未分配表 unallocate_waybill table中*/
+//		    	
+//		    	new AsynSaveUnallocateWaybill(waybillEntity.getId(), cityCode, x, y, waybillEntity.getThird_platform_id()).run();
+//		    }
+		    
+		   
 		    
         }catch(Exception e){
         	log.error(e.getMessage());
         	throw new BaseSupportException(e);
         }
 	
-        /*优化项：1、入库后的运单，在redis中记录，作为之后统计的依据*/
+        
+        /*异步自动分配订单*/
+        new AsynAllocateWaybill(x, y, psList, cityCode, courierId, waybillEntity.getThird_platform_id()).run();;
+        
+	}
+	
+	
+	/**
+	 * 异步写入未自动分配的订单
+	 * @author houshipeng
+	 *
+	 */
+	class AsynAllocateWaybill extends Thread{
+		String sp_x;
+		String sp_y;
+		List<String> list;
+		String city_code;
+		String courierId;
+		String delivery_eid_id;
+		public AsynAllocateWaybill(String sp_x,String sp_y,List<String> list,String city_code,String courierId,String delivery_eid_id){
+			this.sp_x = sp_x;
+			this.sp_y = sp_y;
+			this.list = list;
+			this.city_code = city_code;
+			this.courierId = courierId;
+			this.delivery_eid_id = delivery_eid_id;
+		}
+		
+		public void run(){
+			try{
+				/*如果指定了配送员，无需自动分配，直接把所有的订单分配给配送员即可*/
+				if(StringUtils.isNotBlank(courierId)){
+					/*在controller已经检查了手机号是否存在，再次无需检查*/
+
+					/*订单批量分配给指定的配送员*/
+					waybillDao.batchAllocateWaybill2Courier(courierId,delivery_eid_id, "0", list);
+					
+					/*修改配送员的配送状态(如果当前状态是配送中，则不需要修改)*/
+					userDao.updateCourierDeliveryStatus(courierId, "1");
+					
+				}else{
+					/*自动分配订单*/
+					
+					/*根据citycode检索 在本城市配送的团队(公司)*/
+					List<EnterpriseCityEntity> psEidList = getEnterpriseAreaByCityInfo(null, null, city_code, null);
+					/*该区域无可用的配送公司*/
+					if(psEidList==null||psEidList.size()==0){
+						for(String wbid : list){
+							WayBillEntity wb = new WayBillEntity();
+							wb.setId(wbid);
+							wb.setSys_remarks("配送未覆盖本区域,建议您取消订单");
+							waybillDao.updateWaybillById(wb);
+						}
+						
+						/*结束该线程*/
+						return;
+					}
+					
+					/*根据可用的配送公司列表，检索这些配送公司下离当前是商家最近 空闲的配送员*/
+					/*获取最近的配送员*/
+					
+					/*解析该城市可用的配送公司*/
+					StringBuilder sb = new StringBuilder("");
+			        for(EnterpriseCityEntity ec : psEidList){
+			        	String eid = ec.getEnterprise_id();
+			        	sb.append(eid+",");
+			        }
+
+			        String eids = sb.substring(0, sb.length()-1);
+			        
+			        /*核心算法，查找最合适的配送员(考虑使用负载均衡算法)*/
+			        String courierIdAndEid = queryNearCourier(eids, sp_x, sp_y);
+			        
+			        /*判断是否找到了最合适的配送员*/
+			        if(StringUtils.isBlank(courierIdAndEid)){
+			        	/*没有找到合适的配送员,订单写入到待分配表中*/
+			        	String eid = getDeliveryEnt(psEidList);
+			        	for(String wbid : list){
+			        		waybillDao.saveUnallocateWaybill(wbid, city_code, sp_x, sp_y, eid);
+			        	}
+			        }else{
+						/*格式：配送员编号^隶属企业编号*/
+						String cs[] = courierIdAndEid.split("\\^");
+						waybillDao.batchAllocateWaybill2Courier(cs[0],cs[1], "0", list);
+						
+						/*更改配送员 配送状态*/
+						userDao.updateCourierDeliveryStatus(cs[0], "1");
+			        }
+				}
+			}catch(Exception e){
+				log.error("异步写入未分配的订单异常: "+e);
+			}
+		}
+	}
+	
+	/**
+	 * 订单自动分配过程，获取指定城市可用的配送公司
+	 * @param entList
+	 * @return
+	 */
+	String getDeliveryEnt(List<EnterpriseCityEntity> entList){
+		
+		/*检索支持手工干预订单的配送公司*/
+		List<String> psEnt = new ArrayList<String>();
+		
+//		StringBuilder sb = new StringBuilder("");
+		for(EnterpriseCityEntity ec : entList){
+			String manual = ec.getManual();
+			if(StringUtils.isNotBlank(manual)){
+				if(manual.equals("0")){
+					psEnt.add(ec.getEnterprise_id());
+				}
+			}
+			//sb.append(ec.getEnterprise_id()+",");
+		}
+		
+		/*该地区的配送公司*/
+//		String eids = sb.substring(0, sb.length()-1);
+		if(psEnt==null || psEnt.size()==0){
+			return null;
+		}
+		
+		/*随机返回一个配送公司*/
+		int index = 0;
+		if(psEnt.size()>1){
+			index = new Random().nextInt(psEnt.size());
+		}
+		return psEnt.get(index);
+	}
+	
+	/**
+	 * 查询周边3公里范围内的空闲配送员
+	 * @param eids
+	 * @param x
+	 * @param y
+	 * @return
+	 */
+	private String queryNearCourier(String eids,String x,String y){
+		List<String> courierList = new ArrayList<String>();
+        /*查询商家周边(默认3公里)范围内的配送员，如果是多个商家，则在比较多个商家中那个离的最近(后期考虑增加权重值，用于做订单的优先分配)*/
+		
+//		boolean redisIsWork = redisService.redisIsWork();
+		
+        log.entry("courierService.queryNearCourier",eids,x,y);
+        courierList = courierService.queryNearCourier(eids, x, y);
+        
+        log.entry("数据库中检索配送员结果: ",courierList);
+        if(courierList==null||courierList.size()==0){
+			return null;
+        }
+        
+        /*获取配送员(现在是获取一个配送员，之后需要改为：如果有多个配送公司，从每个公司里面找最近的配送员，每个最近的再一次排序，找更近的)*/
+        return String.valueOf(courierList.get(0));
+        
+        /*如果商家周边3公里范围内没有配送员，则提示 商家，周边暂时没有配送员，请稍后再提交(下一版改为 用户可以提交，提交后的订单，定时扫描是否有 可分配的配送员)，
+         * 如果超过等待时间，自动取消(或者提醒商家取消订单)
+         * 或者在地图上显示周边的配送员，如果地图上没有可用的配送员，需要在地图上提醒
+         * */
+		
+		/*返回的结果为快递员id，如果返回为null，表示周边没有配送员*/
 	}
 	
 	/**
@@ -583,8 +1001,6 @@ public class ShipperServiceImpl implements ShipperService {
 		}
 		
 	}
-
-	
 	
 	
 	/**

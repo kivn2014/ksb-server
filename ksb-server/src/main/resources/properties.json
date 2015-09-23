@@ -78,5 +78,17 @@
        "redis.unallocate.prefix":{
         "value":"redis_unallocate_",
         "comments":"存储配送员最近上报的位置"
-    }                
+    }   ,    
+       "pingxx.api.key":{
+        "value":"sk_test_88SOC4Tu5qnD9Gerb99eP4CC",
+        "comments":"ping++ api key"
+    }   ,   
+        "pingxx.app.id":{
+        "value":"app_jjzXbPL0GOiPOKyz",
+        "comments":"ping++ app id"
+    }    ,   
+        "pic.url":{
+        "value":"http://resource.3gongli.com/pic",
+        "comments":"小票照片地址"
+    }     
 }

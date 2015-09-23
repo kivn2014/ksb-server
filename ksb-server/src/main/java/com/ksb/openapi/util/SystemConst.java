@@ -41,4 +41,13 @@ public class SystemConst {
 	/*未分配的订单*/
 	public static final String UNALLOCATE_PREFIX = "redis.unallocate.prefix";
 	
+	/*ping++ api key(访问许可)*/
+	public static final String PINGXX_API_KEY = "pingxx.api.key";
+	
+	/*ping++ app id(支付渠道绑定)*/
+	public static final String PINGXX_APP_ID = "pingxx.app.id";
+	
+	/*订单小票 照片地址*/
+	public static final String PIC_URL = "pic.url";
+	
 }

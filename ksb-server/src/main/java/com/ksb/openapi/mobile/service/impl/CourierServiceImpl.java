@@ -119,7 +119,7 @@ public class CourierServiceImpl implements CourierService {
 
 	
 	@Override
-	public CourierEntity queryCourier(String uid, String realName,String phone) {
+	public CourierEntity queryFreeCourier(String uid, String realName,String phone) {
 
 		CourierEntity courierEntity = null;
 		try {
@@ -127,7 +127,7 @@ public class CourierServiceImpl implements CourierService {
 				realName = "%"+realName+"%";
 			}
 			
-			courierEntity = (CourierEntity) userDao.queryCourierInfo(uid,realName,phone);
+			courierEntity = (CourierEntity) userDao.queryFreeCourierInfo(uid,realName,phone);
 		} catch (Exception e) {
 			Log.error("查询时系统异常", e);
 			return null;
@@ -136,6 +136,24 @@ public class CourierServiceImpl implements CourierService {
 		return courierEntity;
 	}
 
+	@Override
+	public CourierEntity queryCourier(String uid, String realName,String phone) {
+
+		CourierEntity courierEntity = null;
+		try {
+			if(StringUtils.isNotBlank(realName)){
+				realName = "%"+realName+"%";
+			}
+			
+			courierEntity = (CourierEntity) userDao.queryFreeCourierInfo(uid,realName,phone);
+		} catch (Exception e) {
+			Log.error("查询时系统异常", e);
+			return null;
+		}
+
+		return courierEntity;
+	}	
+	
 	@Override
 	public Map<String, Object> queryCorierList(CourierEntity entity,int skip,int size){
 		

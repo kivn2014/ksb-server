@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import com.ksb.openapi.entity.EnterpriseCityEntity;
 import com.ksb.openapi.entity.EnterpriseEntity;
+import com.ksb.openapi.entity.ShipperAddressEntity;
 import com.ksb.openapi.entity.ShipperEntity;
 import com.ksb.openapi.entity.ShipperUserEntity;
 
@@ -224,4 +225,152 @@ public class EnterpriseDao {
 		
 		return sb.toString();
 	}	
+	
+	/**
+	 * 设置指定的地址为商家默认发货地址
+	 * @param sp_id
+	 * @param address_id
+	 * @return
+	 */
+	@Author("shipeng.hou")
+	@SingleDataSource(1)
+	@Update
+	public Object shipperDefaultAddress(@SqlParameter("sp_id") String sp_id,@SqlParameter("address_id") String address_id){
+		
+		return "update shippers_address set is_default=1 where shippers_id=#{sp_id} and id=#{address_id}";
+	}
+	
+	/**
+	 * 设置默认地址的时候 shippers表联动调整为默认的地址
+	 * @param sp_id
+	 * @param address_id
+	 * @return
+	 */
+	@Author("shipeng.hou")
+	@SingleDataSource(1)
+	@Update
+	public Object copyDefault2Shippers(@SqlParameter("sp_id") String sp_id,@SqlParameter("address_id") String address_id){
+		
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("update shippers inner join shippers_address on shippers.id=shippers_address.shippers_id ");
+		sb.append(" set shippers.phone=shippers_address.phone,shippers.contact=shippers_address.contact,");
+		sb.append("shippers.address=shippers_address.address,shippers.city=shippers_address.city_name,shippers.address_detail=shippers_address.address_detail,");
+		sb.append("shippers.province=shippers_address.province_name,shippers.district=shippers_address.district_name,");
+		sb.append("shippers.address_x=shippers_address.address_x,shippers.address_y=shippers_address.address_y");
+		
+		sb.append(" where  shippers_address.shippers_id=#{sp_id} and shippers_address.id=#{address_id}");
+		
+		return sb.toString();
+	}
+	
+	
+	/**
+	 * 重置商家默认发货地址
+	 * @param sp_id
+	 * @return
+	 */
+	@Author("shipeng.hou")
+	@SingleDataSource(1)
+	@Update
+	public Object resetShipperDefaultAddress(@SqlParameter("sp_id") String sp_id){
+		return "update shippers_address set is_default=0 where shippers_id=#{sp_id} ";
+	}
+	
+	/**
+	 * 商家发货地址列表
+	 * @param sp_id
+	 * @return
+	 */
+	@Author("shipeng.hou")
+	@SingleDataSource(1)
+	@Select(collectionType=CollectionType.beanList,resultType=ShipperAddressEntity.class)
+	public Object queryShipperAddressList(@SqlParameter("sp_id") String sp_id){
+		
+		StringBuilder sb = new StringBuilder("select ");
+		sb.append(" id,shippers_id sp_id,address,address_x,address_y,city_code,address_detail,is_default,contact,phone,");
+		sb.append(" province_name,city_name,district_name ");
+		sb.append(" from shippers_address ");
+		sb.append("where shippers_id=#{sp_id} and status=0");
+		
+		return sb.toString();
+	}
+
+	/**
+	 * 根据地址编号获取商家指定的地址信息
+	 * @param sp_id
+	 * @return
+	 */
+	@Author("shipeng.hou")
+	@SingleDataSource(1)
+	@Select(collectionType=CollectionType.bean,resultType=ShipperAddressEntity.class)
+	public Object queryShipperAddressById(@SqlParameter("sp_id") String sp_id,@SqlParameter("address_id") String address_id){
+		
+		StringBuilder sb = new StringBuilder("select ");
+		sb.append(" id,shippers_id sp_id,address,address_x,address_y,city_code,address_detail,is_default,contact,phone,");
+		sb.append(" province_name,city_name,district_name ");
+		sb.append(" from shippers_address ");
+		sb.append("where shippers_id=#{sp_id} and id=#{address_id} and status=0");
+		
+		return sb.toString();
+	}
+	
+	
+	/**
+	 * 商家地址修改(全部修改)
+	 * @param entity
+	 * @return
+	 */
+	@Author("shipeng.hou")
+	@SingleDataSource(1)
+	@Update
+	public Object editShipperAddress(@SqlParameter("e") ShipperAddressEntity entity){
+		
+		StringBuilder sb = new StringBuilder("update shippers_address set ");
+		sb.append(" address=#{e.address},address_detail=#{e.address_detail},address_x=#{e.address_x},address_y=#{e.address_y},");
+		sb.append(" city_code=#{e.city_code},contact=#{e.contact},phone=#{e.phone},city_name=#{e.city_name},province_name=#{e.province_name}, ");
+		sb.append("district_name=#{e.district_name} ");
+		
+		sb.append(" where id=#{e.id} and shippers_id=#{e.sp_id} ");
+		
+		return sb.toString();
+	}
+	/**
+	 * 商家注销地址
+	 * @param sp_id
+	 * @param address_id
+	 * @return
+	 */
+	@Author("shipeng.hou")
+	@SingleDataSource(1)
+	@Update
+	public Object cancelShipperAddress(@SqlParameter("sp_id") String sp_id,@SqlParameter("address_id") String address_id){
+		
+		return "update shippers_address set status=-1 where id=#{address_id} and shippers_id=#{sp_id}";
+	}
+	
+	/**
+	 * 商家添加常用发单地址
+	 * @param entity
+	 * @return
+	 */
+	@Author("shipeng.hou")
+	@SingleDataSource(1)
+	@Insert
+	public Object createShipperAddress(@SqlParameter("e")ShipperAddressEntity entity){
+		
+		StringBuilder sb = new StringBuilder("insert into shippers_address(");
+		/*拼装入库字段*/
+		sb.append("id,shippers_id,address,address_x,address_y,city_code,address_detail,is_default,contact,phone,status,city_name,province_name,district_name");
+		sb.append(")");
+		
+		/*拼装入库数据*/
+		sb.append("values(");
+		sb.append("#{e.id},#{e.sp_id},#{e.address},#{e.address_x},#{e.address_y},#{e.city_code},#{e.address_detail}");
+		sb.append(",#{e.is_default},#{e.contact},#{e.phone},0,#{e.city_name},#{e.province_name},#{e.district_name}");
+		sb.append(")");
+		
+		return sb.toString();
+	}
+	
 }

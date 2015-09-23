@@ -158,7 +158,18 @@ public class ServiceTest {
 		//saveUnallocate();
 		//searchWaybillTemp();
 		
-		batchSaveCourier();
+		//batchSaveCourier();
+		
+		copyDefaultAdress();
+		
+		
+	}
+	
+	public void copyDefaultAdress(){
+		
+		enterpriseDao.copyDefault2Shippers("643339214603026432", "644748742976471040");
+		
+		
 	}
 	
 	
