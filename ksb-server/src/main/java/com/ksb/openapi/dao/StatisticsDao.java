@@ -78,7 +78,7 @@ public class StatisticsDao {
 	@Select	
 	public Object queryShipperStatusByDate(@SqlParameter("sp_id")String spId,@SqlParameter("sp_uid")String spUid,@SqlParameter("st")Long startTime,@SqlParameter("et") Long endTime){
 		
-		StringBuilder sb = new StringBuilder("select FROM_UNIXTIME((create_time/1000),'%Y-%m-%d') waybill_date,waybill_status,count(waybill_status) status_num from waybill where shippers_id=#{sp_id} and (waybill_status=5 or waybill_status=-3  ) ");
+		StringBuilder sb = new StringBuilder("select FROM_UNIXTIME((create_time/1000),'%Y-%m-%d') waybill_date,waybill_status,count(waybill_status) status_num,sum(waybill_distance) waybill_distance,sum(waybill_amount) waybill_amount from waybill where shippers_id=#{sp_id} and (waybill_status=5 or waybill_status=-3  ) ");
 		
 		if(startTime!=null && endTime!=null){
 			sb.append(" and (create_time>=#{st} and create_time<=#{et}) ");
