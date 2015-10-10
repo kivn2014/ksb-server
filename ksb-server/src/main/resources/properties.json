@@ -80,7 +80,7 @@
         "comments":"存储配送员最近上报的位置"
     }   ,    
        "pingxx.api.key":{
-        "value":"sk_test_88SOC4Tu5qnD9Gerb99eP4CC",
+        "value":"sk_live_VP0BvWwxSRyF1ZFfMR3z7qSU",
         "comments":"ping++ api key"
     }   ,   
         "pingxx.app.id":{

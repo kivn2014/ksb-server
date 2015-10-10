@@ -45,4 +45,7 @@
 	<!-- 运单分配系统 -->
 	<dubbo:service interface="com.ksb.web.service.WebWaybillService" ref="webWaybillServiceImpl" />
 	
+	<!-- 支付相关 -->
+	<dubbo:service interface="com.ksb.openapi.mobile.service.ChargeService" ref="chargeServiceImpl" />
+	
 </beans>
